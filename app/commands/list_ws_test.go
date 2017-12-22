@@ -4,7 +4,9 @@ import "testing"
 import "github.com/stretchr/testify/assert"
 
 func TestCommandName(t *testing.T) {
-	f := (&ListWsFactory{}).CreateCommand()
+	f := new(ListWsFactory).CreateCommand()
 
-	assert.Equal(t, "List Workspaces", f.Name)
+	assert.Equal(t, "workspace", f.Command)
+	assert.Equal(t, []string{"ws"}, f.Aliases)
+	assert.Equal(t, "List all workspaces with fancy information", f.Description)
 }

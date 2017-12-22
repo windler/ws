@@ -4,22 +4,32 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
+const (
+	ParallelProcessing string = "parallelProcessing"
+	WsDir              string = "wsDir"
+)
+
 //Config represents all app configurations
-type Config struct {
-	WsDir string
+type config struct {
+	items map[string]string
+	mu    sync.RWMutex
 }
 
+//repo impl. inspired by http://blog.ralch.com/tutorial/design-patterns/golang-singleton/
 var (
-	cfg     Config
+	cfg     *config
 	cfgFile string
+	once    sync.Once
 )
 
 //Prepare ensures that at least an empty config exists and inits the repo
 func Prepare(filename string) {
+	repo := Repository()
 	cfgFile = filename
 
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -28,6 +38,8 @@ func Prepare(filename string) {
 			log.Fatal("Cannot create file ", err)
 		}
 		defer f.Close()
+
+		repo.Save()
 	}
 
 	d, err := ioutil.ReadFile(filename)
@@ -36,19 +48,42 @@ func Prepare(filename string) {
 		log.Fatal("Cannot read file ", err)
 	}
 
-	yaml.Unmarshal(d, &cfg)
+	yaml.Unmarshal(d, &cfg.items)
 }
 
-//Get retrievs the whole config as a struct
-func Get() Config {
+func (r *config) Set(key, data string) {
+	cfg.mu.Lock()
+	defer r.mu.Unlock()
+	cfg.items[key] = data
+}
+
+func (r *config) Get(key string) string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	item, ok := cfg.items[key]
+	if !ok {
+		return ""
+	}
+	return item
+}
+
+func Repository() *config {
+	once.Do(func() {
+		if cfg == nil {
+			cfg = &config{
+				items: make(map[string]string),
+			}
+		}
+	})
 	return cfg
 }
 
 //Save persists the configuration
-func (newCfg Config) Save() {
-	cfg = newCfg
+func (newCfg config) Save() {
+	cfg.mu.RLock()
+	defer cfg.mu.RUnlock()
 
-	data, err := yaml.Marshal(newCfg)
+	data, err := yaml.Marshal(cfg.items)
 	if err != nil {
 		log.Fatal("could not marshall configuration ", err)
 	}

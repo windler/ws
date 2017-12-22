@@ -32,6 +32,7 @@ func (app ProjHeroApp) configureApp(version string) {
 
 	cliApp.Name = "projhero"
 	cliApp.Description = "Dev Workspace Swiss Knife"
+	cliApp.Usage = "Dev Workspace Swiss Knife"
 	cliApp.Author = "Nico Windler"
 	cliApp.Copyright = "2017"
 	cliApp.Email = "nico.windler@gmail.com"

@@ -15,6 +15,7 @@ func TestDefaultApp(t *testing.T) {
 	assert.Equal(t, "myVersion", app.app.Version)
 	assert.Equal(t, "projhero", app.app.Name)
 	assert.Equal(t, "Dev Workspace Swiss Knife", app.app.Description)
+	assert.Equal(t, "Dev Workspace Swiss Knife", app.app.Usage)
 	assert.Equal(t, "Nico Windler", app.app.Author)
 	assert.Equal(t, "2017", app.app.Copyright)
 	assert.Equal(t, "nico.windler@gmail.com", app.app.Email)
@@ -37,7 +38,7 @@ func TestAddCommands(t *testing.T) {
 
 	factory := new(BaseCommandFactoryMock)
 	factory.On("CreateCommand").Return(commands.BaseCommand{
-		Name: "testcommand",
+		Command: "testcommand",
 	})
 
 	app.AddCommand(factory)

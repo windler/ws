@@ -3,6 +3,7 @@ package app
 import (
 	"testing"
 
+	"github.com/urfave/cli"
 	"github.com/windler/projhero/app/commands"
 
 	"github.com/stretchr/testify/assert"
@@ -39,10 +40,17 @@ func TestAddCommands(t *testing.T) {
 	factory := new(BaseCommandFactoryMock)
 	factory.On("CreateCommand").Return(commands.BaseCommand{
 		Command: "testcommand",
+		Action:  new(action),
 	})
 
 	app.AddCommand(factory)
 
 	assert.True(t, len(app.app.Commands) == 1)
 	assert.Equal(t, "testcommand", app.app.Commands[0].Name)
+}
+
+type action struct{}
+
+func (a action) Exec(c *cli.Context) error {
+	return nil
 }

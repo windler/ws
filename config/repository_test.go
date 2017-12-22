@@ -20,12 +20,11 @@ func TestSaveConfig(t *testing.T) {
 	file, _ := ioutil.TempFile("", "projherotest")
 	Prepare(file.Name())
 
-	c := Get()
-	assert.Equal(t, "", c.WsDir)
+	c := Repository()
+	assert.Equal(t, "", c.Get(WsDir))
 
-	c.WsDir = "someText"
+	c.Set(WsDir, "someText")
 	c.Save()
 
-	cNew := Get()
-	assert.Equal(t, "someText", cNew.WsDir)
+	assert.Equal(t, "someText", c.Get(WsDir))
 }

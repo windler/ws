@@ -2,13 +2,13 @@ package commands
 
 import (
 	"bufio"
-	"fmt"
 
 	"os"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	"github.com/windler/workspacehero/app/common"
+	"github.com/windler/workspacehero/app/ui"
 	"github.com/windler/workspacehero/config"
 )
 
@@ -49,32 +49,31 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 }
 
 func setWsDirSubCommandExec(c *cli.Context) error {
+	ui := ui.CurrentUI()
 	repo := config.Repository(c)
 
-	common.PrintHeader("Workspace")
+	ui.PrintHeader("Workspace")
 
-	color.White("Current workspace dir to scan: ")
-	color.Green(repo.WsDir)
+	ui.PrintString("Current workspace dir to scan: ")
+	ui.PrintString(repo.WsDir, color.FgGreen)
 
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("")
-	color.White("New value: ")
+	ui.PrintStrings([]string{"", "New value: "})
 	newWsDir, _ := reader.ReadString('\n')
-	fmt.Println("")
 
-	setNewWsDir(repo, newWsDir)
+	setNewWsDir(repo, newWsDir, ui)
 
 	return nil
 }
 
-func setNewWsDir(repo *config.Config, dir string) {
+func setNewWsDir(repo *config.Config, dir string, ui ui.UI) {
 	repo.WsDir = common.EnsureDirFormat(dir)
 	repo.Save()
 
-	color.White("Successfully set to:")
-	color.Green(repo.WsDir)
+	ui.PrintStrings([]string{"", "Successfully set to:"})
+	ui.PrintString(repo.WsDir, color.FgGreen)
 
-	common.Recommend(CmdListWs)
+	common.Recommend(CmdListWs, ui)
 }
 
 func setAddWsSubCommandExec(c *cli.Context) error {

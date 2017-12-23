@@ -1,9 +1,6 @@
 package commands
 
 import (
-	"os"
-
-	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
 )
 
@@ -71,12 +68,4 @@ type BaseCommandFactory interface {
 //CommandAction represents the action executed when command is chosen
 type CommandAction interface {
 	Exec(c *cli.Context) error
-}
-
-func printTable(header []string, rows [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(header)
-	table.SetBorder(false)
-	table.AppendBulk(rows)
-	table.Render()
 }

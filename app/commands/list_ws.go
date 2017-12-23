@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/windler/workspacehero/app/ui"
+
 	"github.com/fatih/color"
 	"github.com/windler/workspacehero/app/common"
 
@@ -48,14 +50,16 @@ func listWsExecAll(c *cli.Context) error {
 }
 
 func listWsExec(c *cli.Context, onlyCurrent bool) error {
+	ui := ui.CurrentUI()
 	conf := config.Repository(c)
 
 	wsDir := conf.WsDir
 
 	if wsDir == "" {
-		common.PrintHeader("Panic!")
-		color.Red(" >> No workspaces defined to scan <<")
-		common.RecommendFromError(CmdSetup)
+		ui.PrintHeader("Panic!")
+		ui.PrintString(" >> No workspaces defined to scan <<", color.FgRed)
+		common.RecommendFromError(CmdSetup, ui)
+
 		return nil
 	}
 
@@ -82,10 +86,10 @@ func listWsExec(c *cli.Context, onlyCurrent bool) error {
 
 	if len(rows) > 0 {
 		sort.Sort(rows)
-		printTable([]string{"dir", "git status", "branch"}, rows)
+		ui.PrintTable([]string{"dir", "git status", "branch"}, rows)
 	} else {
-		color.Red("No workspaces found!")
-		common.RecommendFromError(CmdSetup)
+		ui.PrintString("No workspaces found!", color.FgRed)
+		common.RecommendFromError(CmdSetup, ui)
 	}
 
 	return nil

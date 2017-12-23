@@ -1,30 +1,29 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/windler/workspacehero/internal/test"
 )
 
 func TestPrepareConfig(t *testing.T) {
-	file, _ := ioutil.TempFile("", "projherotest")
-	Prepare(file.Name())
+	c, file := test.CreateTestContext(ConfigFlag)
+	Repository(c)
 
 	_, err := os.Stat(file.Name())
 	assert.Nil(t, err)
 }
 
 func TestSaveConfig(t *testing.T) {
-	file, _ := ioutil.TempFile("", "projherotest")
-	Prepare(file.Name())
+	c, _ := test.CreateTestContext(ConfigFlag)
+	repo := Repository(c)
 
-	c := Repository()
-	assert.Equal(t, "", c.Get(WsDir))
+	assert.Equal(t, "", repo.WsDir)
 
-	c.Set(WsDir, "someText")
-	c.Save()
+	repo.WsDir = "someText"
+	repo.Save()
 
-	assert.Equal(t, "someText", c.Get(WsDir))
+	assert.Equal(t, "someText", repo.WsDir)
 }

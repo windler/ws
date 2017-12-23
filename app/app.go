@@ -1,14 +1,11 @@
 package app
 
 import (
-	"fmt"
-	"log"
 	"os"
-	"os/user"
 
 	"github.com/urfave/cli"
-	"github.com/windler/projhero/app/commands"
-	"github.com/windler/projhero/config"
+	"github.com/windler/workspacehero/app/commands"
+	"github.com/windler/workspacehero/config"
 )
 
 //ProjHeroApp is the main cli app
@@ -30,27 +27,22 @@ func CreateNewApp(version string) *ProjHeroApp {
 func (app ProjHeroApp) configureApp(version string) {
 	cliApp := app.app
 
-	cliApp.Name = "projhero"
-	cliApp.Description = "Dev Workspace Swiss Knife"
-	cliApp.Usage = "Dev Workspace Swiss Knife"
+	cliApp.Name = "asd"
+	cliApp.Description = "Dev Workspace Swiss Knife."
+	cliApp.Usage = "workspace hero"
 	cliApp.Author = "Nico Windler"
 	cliApp.Copyright = "2017"
 	cliApp.Email = "nico.windler@gmail.com"
 	cliApp.Version = version
+	cliApp.Action = commands.ListWsExecCurrent
+	cliApp.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  config.ConfigFlag + ", c",
+			Usage: "Load configuration from `FILE`",
+		},
+	}
 
 	cliApp.EnableBashCompletion = true
-
-	cliApp.Action = func(c *cli.Context) {
-		fmt.Println("Welcome star")
-	}
-
-	usr, err := user.Current()
-
-	if err != nil {
-		log.Fatal("can not obtain user ", err)
-	}
-
-	config.Prepare(usr.HomeDir + "/.projherocfg")
 }
 
 //AddCommand adds a new cli command

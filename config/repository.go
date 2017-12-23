@@ -4,86 +4,102 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/user"
 	"sync"
+
+	"github.com/urfave/cli"
+	"github.com/windler/workspacehero/app/common"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
-const (
-	ParallelProcessing string = "parallelProcessing"
-	WsDir              string = "wsDir"
-)
-
 //Config represents all app configurations
-type config struct {
-	items map[string]string
-	mu    sync.RWMutex
+type Config struct {
+	WsDir              string
+	ParallelProcessing int
 }
 
-//repo impl. inspired by http://blog.ralch.com/tutorial/design-patterns/golang-singleton/
 var (
-	cfg     *config
+	cfg     *Config
 	cfgFile string
 	once    sync.Once
+	dirVals = []string{}
 )
 
-//Prepare ensures that at least an empty config exists and inits the repo
-func Prepare(filename string) {
-	repo := Repository()
-	cfgFile = filename
+const (
+	ConfigFlag string = "config"
+)
 
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		f, e := os.Create(filename)
-		if e != nil {
-			log.Fatal("Cannot create file ", err)
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
 		}
-		defer f.Close()
-
-		repo.Save()
 	}
-
-	d, err := ioutil.ReadFile(filename)
-
-	if err != nil {
-		log.Fatal("Cannot read file ", err)
-	}
-
-	yaml.Unmarshal(d, &cfg.items)
+	return false
 }
 
-func (r *config) Set(key, data string) {
-	cfg.mu.Lock()
-	defer r.mu.Unlock()
-	cfg.items[key] = data
+//SetConfigFile sets the config to use (when not set default path will be user)
+func SetConfigFile(file string) {
+	cfgFile = file
 }
 
-func (r *config) Get(key string) string {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	item, ok := cfg.items[key]
-	if !ok {
-		return ""
-	}
-	return item
-}
-
-func Repository() *config {
+//Repository returns the config for the app
+func Repository(c *cli.Context) *Config {
 	once.Do(func() {
 		if cfg == nil {
-			cfg = &config{
-				items: make(map[string]string),
-			}
+			createCfg(c)
 		}
 	})
 	return cfg
 }
 
-//Save persists the configuration
-func (newCfg config) Save() {
-	cfg.mu.RLock()
-	defer cfg.mu.RUnlock()
+func createCfg(c *cli.Context) {
+	cfg = &Config{}
 
-	data, err := yaml.Marshal(cfg.items)
+	ensureCfgFile(c)
+
+	d, err := ioutil.ReadFile(cfgFile)
+
+	if err != nil {
+		log.Fatal("Cannot read file ", err)
+	}
+
+	yaml.Unmarshal(d, &cfg)
+}
+
+func ensureCfgFile(c *cli.Context) {
+
+	if c.String(ConfigFlag) == "" {
+		usr, err := user.Current()
+
+		if err != nil {
+			log.Fatal("can not obtain user ", err)
+		}
+		cfgFile = usr.HomeDir + "/.projherocfg"
+	} else {
+		cfgFile = common.EnsureFileFormat(c.String(ConfigFlag))
+	}
+
+	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
+		f, e := os.Create(cfgFile)
+		if e != nil {
+			log.Fatal("Cannot create file ", err)
+		}
+		defer f.Close()
+
+		setupDefaultValues()
+		cfg.Save()
+	}
+}
+
+func setupDefaultValues() {
+	cfg.ParallelProcessing = 3
+}
+
+//Save persists the current configuration
+func (c Config) Save() {
+	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		log.Fatal("could not marshall configuration ", err)
 	}

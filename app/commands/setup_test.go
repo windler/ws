@@ -1,9 +1,15 @@
 package commands
 
-import "testing"
-import "github.com/stretchr/testify/assert"
-import "github.com/windler/workspacehero/config"
-import "github.com/windler/workspacehero/internal/test"
+import (
+	"io/ioutil"
+	"log"
+	"os"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/windler/workspacehero/config"
+	"github.com/windler/workspacehero/internal/test"
+)
 
 func TestSetupCommand(t *testing.T) {
 	f := new(SetupAppFactory).CreateCommand()
@@ -25,10 +31,38 @@ func TestSetupCommand(t *testing.T) {
 }
 
 func TestSetNewWsDir(t *testing.T) {
-	c, _ := test.CreateTestContext(config.ConfigFlag)
-	repo := config.Repository(c)
+	ui := test.MockUI()
+	f := SetupAppFactory{
+		UserInterface: ui,
+	}
 
-	assert.NotEqual(t, "/testfile/", repo.WsDir)
-	setNewWsDir(repo, "/testfile")
-	assert.Equal(t, "/testfile/", repo.WsDir)
+	c, _ := test.CreateTestContext(config.ConfigFlag)
+	config.Repository(c).WsDir = ""
+
+	oldStdin := mockStdIn("/testWsDir/")
+	defer func() { os.Stdin = oldStdin }()
+
+	err := f.CreateCommand().Subcommands[0].Action(c)
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	assert.Equal(t, "/testWsDir/", config.Repository(c).WsDir)
+}
+
+func mockStdIn(input string) *os.File {
+	//https://stackoverflow.com/a/46365584
+	content := []byte(input)
+	tmpfile, err := ioutil.TempFile("", "wshero")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(tmpfile.Name())
+
+	tmpfile.Write(content)
+	tmpfile.Seek(0, 0)
+
+	oldStdin := os.Stdin
+	os.Stdin = tmpfile
+
+	return oldStdin
 }

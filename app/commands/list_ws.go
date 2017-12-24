@@ -1,28 +1,32 @@
 package commands
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/windler/workspacehero/app/ui"
+	"github.com/windler/workspacehero/app/commands/contracts"
 
 	"github.com/fatih/color"
-	"github.com/windler/workspacehero/app/common"
 
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/app/git"
 	"github.com/windler/workspacehero/config"
 )
 
 //ListWsFactory creates commands to list workspace information
-type ListWsFactory struct{}
+type ListWsFactory struct {
+	InfoRetriever contracts.WsInfoRetriever
+	UserInterface contracts.UI
+}
 
 type tableData [][]string
 
 //ensure interface
-var _ BaseCommandFactory = &ListWsFactory{}
+var (
+	_ BaseCommandFactory = &ListWsFactory{}
+)
 
 //CreateCommand creates a ListWsCommand
 func (factory *ListWsFactory) CreateCommand() BaseCommand {
@@ -31,9 +35,15 @@ func (factory *ListWsFactory) CreateCommand() BaseCommand {
 		Command:     CmdListWs,
 		Description: "List all workspaces with fancy information.",
 		Aliases:     []string{},
-		Action:      listWsExecAll,
+		Action: func(c *cli.Context) error {
+			return factory.listWsExecAll(c)
+		},
 		Subcommands: []BaseCommand{},
 	}
+}
+
+func (factory *ListWsFactory) UI() contracts.UI {
+	return factory.UserInterface
 }
 
 func (c tableData) Len() int           { return len(c) }
@@ -41,24 +51,23 @@ func (c tableData) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 func (c tableData) Less(i, j int) bool { return strings.Compare(c[i][0], c[j][0]) == -1 }
 
 //ListWsExecCurrent prints infos about the current ws-directory
-func ListWsExecCurrent(c *cli.Context) error {
-	return listWsExec(c, true)
+func (factory *ListWsFactory) ListWsExecCurrent(c *cli.Context) error {
+	return factory.listWsExec(c, true)
 }
 
-func listWsExecAll(c *cli.Context) error {
-	return listWsExec(c, false)
+func (factory *ListWsFactory) listWsExecAll(c *cli.Context) error {
+	return factory.listWsExec(c, false)
 }
 
-func listWsExec(c *cli.Context, onlyCurrent bool) error {
-	ui := ui.CurrentUI()
+func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error {
 	conf := config.Repository(c)
 
 	wsDir := conf.WsDir
 
 	if wsDir == "" {
-		ui.PrintHeader("Panic!")
-		ui.PrintString(" >> No workspaces defined to scan <<", color.FgRed)
-		common.RecommendFromError(CmdSetup, ui)
+		factory.UI().PrintHeader("Panic!")
+		factory.UI().PrintString(" >> No workspaces defined to scan <<", color.FgRed)
+		RecommendFromError(CmdSetup, factory.UI())
 
 		return nil
 	}
@@ -67,35 +76,39 @@ func listWsExec(c *cli.Context, onlyCurrent bool) error {
 	if err != nil {
 		return err
 	}
-	dirs := getDirs(fileInfo, wsDir, onlyCurrent)
+	dirs := factory.getDirs(fileInfo, wsDir, onlyCurrent)
 
 	rows := tableData{}
 
-	dataChannel := channelFileInfos(dirs)
+	dataChannel := factory.channelFileInfos(dirs)
 
 	fanOutChannels := []<-chan []string{}
 
-	for i := 0; i < conf.ParallelProcessing; i++ {
-		fanOutChannels = append(fanOutChannels, collectWsData(dataChannel, onlyCurrent))
+	if conf.ParallelProcessing == 0 {
+		return errors.New("ParallelProcessing has to be > 0")
 	}
 
-	fanInChannel := fanIn(fanOutChannels)
+	for i := 0; i < conf.ParallelProcessing; i++ {
+		fanOutChannels = append(fanOutChannels, factory.collectWsData(dataChannel, onlyCurrent))
+	}
+
+	fanInChannel := factory.fanIn(fanOutChannels)
 	for i := 0; i < len(dirs); i++ {
 		rows = append(rows, <-fanInChannel)
 	}
 
 	if len(rows) > 0 {
 		sort.Sort(rows)
-		ui.PrintTable([]string{"dir", "git status", "branch"}, rows)
+		factory.UI().PrintTable([]string{"dir", "git status", "branch"}, rows)
 	} else {
-		ui.PrintString("No workspaces found!", color.FgRed)
-		common.RecommendFromError(CmdSetup, ui)
+		factory.UI().PrintString("No workspaces found!", color.FgRed)
+		RecommendFromError(CmdSetup, factory.UI())
 	}
 
 	return nil
 }
 
-func getDirs(fileInfos []os.FileInfo, root string, onlyCurrent bool) []string {
+func (factory *ListWsFactory) getDirs(fileInfos []os.FileInfo, root string, onlyCurrent bool) []string {
 	result := []string{}
 
 	wd, _ := os.Getwd()
@@ -109,8 +122,8 @@ func getDirs(fileInfos []os.FileInfo, root string, onlyCurrent bool) []string {
 	return result
 }
 
-func channelFileInfos(dirs []string) <-chan string {
-	out := make(chan string)
+func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
+	out := make(chan string, len(dirs))
 	go func() {
 		for _, dir := range dirs {
 			out <- dir
@@ -120,28 +133,27 @@ func channelFileInfos(dirs []string) <-chan string {
 	return out
 }
 
-func collectWsData(in <-chan string, onlyCurrent bool) <-chan []string {
+func (factory *ListWsFactory) collectWsData(in <-chan string, onlyCurrent bool) <-chan []string {
 	out := make(chan []string)
 	go func() {
 		wd, _ := os.Getwd()
 
 		for dir := range in {
-			g := git.For(dir)
-			status := g.Status()
-			branch := g.CurrentBranch()
+			status := factory.InfoRetriever.Status(dir)
+			branch := factory.InfoRetriever.CurrentBranch(dir)
 
 			if !onlyCurrent && strings.HasPrefix(wd, dir) {
 				dir = dir + " <--"
 			}
 
-			out <- []string{dir, status.Status, branch}
+			out <- []string{dir, status, branch}
 		}
 		close(out)
 	}()
 	return out
 }
 
-func fanIn(input []<-chan []string) <-chan []string {
+func (factory *ListWsFactory) fanIn(input []<-chan []string) <-chan []string {
 	c := make(chan []string)
 	for _, ch := range input {
 		go func(channel <-chan []string) {

@@ -3,12 +3,12 @@ package git
 import (
 	"fmt"
 	"os/exec"
+
+	"github.com/windler/workspacehero/app/commands/contracts"
 )
 
 //Git is for all git operations
-type Git struct {
-	Root string
-}
+type Git struct{}
 
 const (
 	StatusCodeOk      int = 0
@@ -16,15 +16,15 @@ const (
 	StatusCodeError   int = 2
 )
 
-//For creates a Git Object for the given Directory
-func For(path string) Git {
-	return Git{
-		Root: path,
-	}
+var _ contracts.WsInfoRetriever = &Git{}
+
+//New creates a Git Workspace Info Retriever
+func New() Git {
+	return Git{}
 }
 
-func (g Git) gitOnRoot(args ...string) (string, error) {
-	baseArgs := []string{"-C", g.Root}
+func (g Git) gitOnRoot(root string, args ...string) (string, error) {
+	baseArgs := []string{"-C", root}
 	fullArgs := append(baseArgs, args...)
 
 	d, err := exec.Command("git", fullArgs...).Output()

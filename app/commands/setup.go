@@ -3,17 +3,20 @@ package commands
 import (
 	"bufio"
 
+	"github.com/windler/workspacehero/app/commands/contracts"
+
 	"os"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	"github.com/windler/workspacehero/app/common"
-	"github.com/windler/workspacehero/app/ui"
 	"github.com/windler/workspacehero/config"
 )
 
 //SetupAppFactory creates commands to list workspace information
-type SetupAppFactory struct{}
+type SetupAppFactory struct {
+	UserInterface contracts.UI
+}
 
 //ensure interface
 var _ BaseCommandFactory = &SetupAppFactory{}
@@ -25,7 +28,9 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 		Command:     "ws",
 		Description: "Set the root dir where all (most) of your workspaces are.",
 		Aliases:     []string{"workspace_dir"},
-		Action:      setWsDirSubCommandExec,
+		Action: func(c *cli.Context) error {
+			return factory.setWsDirSubCommandExec(c)
+		},
 		Subcommands: []BaseCommand{},
 	}
 
@@ -33,7 +38,9 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 		Command:     "add",
 		Description: "Add an additional worskpace wich is not contained in <workspace_dir>.",
 		Aliases:     []string{"add_single_workspace"},
-		Action:      setAddWsSubCommandExec,
+		Action: func(c *cli.Context) error {
+			return factory.addWsSubCommandExec(c)
+		},
 		Subcommands: []BaseCommand{},
 	}
 
@@ -48,35 +55,37 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 	}
 }
 
-func setWsDirSubCommandExec(c *cli.Context) error {
-	ui := ui.CurrentUI()
+func (factory *SetupAppFactory) UI() contracts.UI {
+	return factory.UserInterface
+}
+
+func (factory *SetupAppFactory) setWsDirSubCommandExec(c *cli.Context) error {
 	repo := config.Repository(c)
 
-	ui.PrintHeader("Workspace")
+	factory.UI().PrintHeader("Workspace")
 
-	ui.PrintString("Current workspace dir to scan: ")
-	ui.PrintString(repo.WsDir, color.FgGreen)
+	factory.UI().PrintString("Current workspace dir to scan: ")
+	factory.UI().PrintString(repo.WsDir, color.FgGreen)
 
 	reader := bufio.NewReader(os.Stdin)
-	ui.PrintStrings([]string{"", "New value: "})
+	factory.UI().PrintString("New value: ")
 	newWsDir, _ := reader.ReadString('\n')
-
-	setNewWsDir(repo, newWsDir, ui)
+	factory.setNewWsDir(repo, newWsDir)
 
 	return nil
 }
 
-func setNewWsDir(repo *config.Config, dir string, ui ui.UI) {
+func (factory *SetupAppFactory) setNewWsDir(repo *config.Config, dir string) {
 	repo.WsDir = common.EnsureDirFormat(dir)
 	repo.Save()
 
-	ui.PrintStrings([]string{"", "Successfully set to:"})
-	ui.PrintString(repo.WsDir, color.FgGreen)
+	factory.UI().PrintString("Successfully set to:")
+	factory.UI().PrintString(repo.WsDir, color.FgGreen)
 
-	common.Recommend(CmdListWs, ui)
+	Recommend(CmdListWs, factory.UI())
 }
 
-func setAddWsSubCommandExec(c *cli.Context) error {
+func (factory *SetupAppFactory) addWsSubCommandExec(c *cli.Context) error {
 
 	return nil
 }

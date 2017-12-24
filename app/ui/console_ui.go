@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/windler/workspacehero/app/commands/contracts"
+
 	figure "github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
@@ -13,7 +15,7 @@ import (
 //ConsoleUI prints output on console
 type ConsoleUI struct{}
 
-var _ UI = &ConsoleUI{}
+var _ contracts.UI = &ConsoleUI{}
 
 func (ui ConsoleUI) PrintHeader(s string) {
 	figure.NewFigure(s, "", true).Print()
@@ -22,12 +24,6 @@ func (ui ConsoleUI) PrintHeader(s string) {
 
 func (ui ConsoleUI) PrintString(s string, colorOrNil ...color.Attribute) {
 	color.New(colorOrNil...).Println(s)
-}
-
-func (ui ConsoleUI) PrintStrings(s []string, colorOrNil ...color.Attribute) {
-	for _, line := range s {
-		color.New(colorOrNil...).Println(line)
-	}
 }
 
 func (ui ConsoleUI) PrintTable(header []string, rows [][]string) {

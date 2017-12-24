@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
+	"github.com/windler/workspacehero/app/commands/contracts"
 )
 
 const (
@@ -63,9 +65,22 @@ func createSubCommands(cmds []BaseCommand) []cli.Command {
 //BaseCommandFactory creates commands
 type BaseCommandFactory interface {
 	CreateCommand() BaseCommand
+	UI() contracts.UI
 }
 
 //CommandAction represents the action executed when command is chosen
 type CommandAction interface {
 	Exec(c *cli.Context) error
+}
+
+//Recommend prints a recommendation command
+func Recommend(command string, ui contracts.UI) {
+	ui.PrintString("")
+	ui.PrintString("How about trying 'asd "+command+"'?", color.FgYellow)
+}
+
+//RecommendFromError prints a recommendation command after error occured
+func RecommendFromError(command string, ui contracts.UI) {
+	ui.PrintString("")
+	ui.PrintString("Have you tried 'asd "+command+"'?", color.FgYellow)
 }

@@ -34,7 +34,7 @@ func (app ProjHeroApp) configureApp(version string) {
 	cliApp.Copyright = "2017"
 	cliApp.Email = "nico.windler@gmail.com"
 	cliApp.Version = version
-	cliApp.Action = commands.ListWsExecCurrent
+
 	cliApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  config.ConfigFlag + ", c",
@@ -43,6 +43,10 @@ func (app ProjHeroApp) configureApp(version string) {
 	}
 
 	cliApp.EnableBashCompletion = true
+}
+
+func (app *ProjHeroApp) SetAction(fn func(c *cli.Context) error) {
+	app.app.Action = fn
 }
 
 //AddCommand adds a new cli command

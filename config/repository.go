@@ -55,7 +55,9 @@ func Repository(c *cli.Context) *Config {
 }
 
 func createCfg(c *cli.Context) {
-	cfg = &Config{}
+	cfg = &Config{
+		ParallelProcessing: 3,
+	}
 
 	ensureCfgFile(c)
 

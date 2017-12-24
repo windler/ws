@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/windler/workspacehero/app/commands/contracts"
+	"github.com/windler/asd/app/commands/contracts"
 )
 
 //Git is for all git operations

@@ -3,7 +3,7 @@ package commands
 import (
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/app/commands/contracts"
+	"github.com/windler/asd/app/commands/contracts"
 )
 
 const (

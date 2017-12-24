@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/windler/workspacehero/app/commands/contracts"
+	"github.com/windler/asd/app/commands/contracts"
 
 	figure "github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/windler/workspacehero/config"
-	"github.com/windler/workspacehero/internal/test"
+	"github.com/windler/asd/config"
+	"github.com/windler/asd/internal/test"
 )
 
 func TestSetupCommand(t *testing.T) {

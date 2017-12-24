@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/urfave/cli"
-	asd "github.com/windler/workspacehero/app"
-	"github.com/windler/workspacehero/app/commands"
-	"github.com/windler/workspacehero/app/git"
-	"github.com/windler/workspacehero/app/ui"
+	asd "github.com/windler/asd/app"
+	"github.com/windler/asd/app/commands"
+	"github.com/windler/asd/app/git"
+	"github.com/windler/asd/app/ui"
 )
 
 func main() {

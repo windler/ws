@@ -7,12 +7,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/windler/workspacehero/app/commands/contracts"
+	"github.com/windler/asd/app/commands/contracts"
 
 	"github.com/fatih/color"
 
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/config"
+	"github.com/windler/asd/config"
 )
 
 //ListWsFactory creates commands to list workspace information

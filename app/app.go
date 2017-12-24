@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/app/commands"
-	"github.com/windler/workspacehero/config"
+	"github.com/windler/asd/app/commands"
+	"github.com/windler/asd/config"
 )
 
 //ProjHeroApp is the main cli app

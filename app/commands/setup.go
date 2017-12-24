@@ -3,14 +3,14 @@ package commands
 import (
 	"bufio"
 
-	"github.com/windler/workspacehero/app/commands/contracts"
+	"github.com/windler/asd/app/commands/contracts"
 
 	"os"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/app/common"
-	"github.com/windler/workspacehero/config"
+	"github.com/windler/asd/app/common"
+	"github.com/windler/asd/config"
 )
 
 //SetupAppFactory creates commands to list workspace information

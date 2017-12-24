@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/app/common"
+	"github.com/windler/asd/app/common"
 
 	yaml "gopkg.in/yaml.v2"
 )

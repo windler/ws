@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/urfave/cli"
-	"github.com/windler/workspacehero/app/commands"
-	"github.com/windler/workspacehero/app/commands/contracts"
+	"github.com/windler/asd/app/commands"
+	"github.com/windler/asd/app/commands/contracts"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -20,7 +20,6 @@ func TestDefaultApp(t *testing.T) {
 	assert.Equal(t, "workspace hero", app.app.Usage)
 	assert.Equal(t, "Nico Windler", app.app.Author)
 	assert.Equal(t, "2017", app.app.Copyright)
-	assert.Equal(t, "nico.windler@gmail.com", app.app.Email)
 	assert.True(t, app.app.EnableBashCompletion)
 }
 

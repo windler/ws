@@ -32,7 +32,6 @@ func (app ProjHeroApp) configureApp(version string) {
 	cliApp.Usage = "workspace hero"
 	cliApp.Author = "Nico Windler"
 	cliApp.Copyright = "2017"
-	cliApp.Email = "nico.windler@gmail.com"
 	cliApp.Version = version
 
 	cliApp.Flags = []cli.Flag{

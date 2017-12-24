@@ -14,6 +14,17 @@ This is a command line tool. You will use it often. You will type it often. So w
 ## Usage
 First, run `asd setup ws` to set your workspace directory. Then, you can run `asd` or `asd ls` or just try `asd -h`:
 ```bash
+asd ls
+                    DIR                   |   GIT STATUS   | BRANCH
++-----------------------------------------+----------------+--------+
+  /home/windler/projects/gittest          | UNMODIFED      | master
+  /home/windler/projects/go               | Not a git repo | /
+
+```
+
+```bash
+asd -h
+
 NAME:
    asd - workspace hero
 

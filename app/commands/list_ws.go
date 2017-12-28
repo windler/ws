@@ -101,11 +101,19 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 		sort.Sort(rows)
 		factory.UI().PrintTable([]string{"dir", "git status", "branch"}, rows)
 	} else {
-		factory.UI().PrintString("No workspaces found!", color.FgRed)
-		RecommendFromError(CmdSetup, factory.UI())
+		factory.printError(onlyCurrent)
 	}
 
 	return nil
+}
+
+func (factory *ListWsFactory) printError(onlyCurrent bool) {
+	if onlyCurrent {
+		factory.UI().PrintString("Current directory is not within a workspace.", color.FgYellow)
+	} else {
+		factory.UI().PrintString("No workspaces found!", color.FgRed)
+		RecommendFromError(CmdSetup, factory.UI())
+	}
 }
 
 func (factory *ListWsFactory) getDirs(fileInfos []os.FileInfo, root string, onlyCurrent bool) []string {

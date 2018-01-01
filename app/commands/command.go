@@ -3,7 +3,6 @@ package commands
 import (
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
-	"github.com/windler/asd/app/commands/contracts"
 )
 
 const (
@@ -12,6 +11,12 @@ const (
 	//CmdSetup is the setup command
 	CmdSetup string = "setup"
 )
+
+type UI interface {
+	PrintHeader(s string)
+	PrintTable(header []string, rows [][]string)
+	PrintString(s string, colorOrNil ...color.Attribute)
+}
 
 //BaseCommand represents wraps the cli commands
 type BaseCommand struct {
@@ -65,7 +70,7 @@ func createSubCommands(cmds []BaseCommand) []cli.Command {
 //BaseCommandFactory creates commands
 type BaseCommandFactory interface {
 	CreateCommand() BaseCommand
-	UI() contracts.UI
+	UI() UI
 }
 
 //CommandAction represents the action executed when command is chosen
@@ -74,13 +79,13 @@ type CommandAction interface {
 }
 
 //Recommend prints a recommendation command
-func Recommend(command string, ui contracts.UI) {
+func Recommend(command string, ui UI) {
 	ui.PrintString("")
 	ui.PrintString("How about trying 'asd "+command+"'?", color.FgYellow)
 }
 
 //RecommendFromError prints a recommendation command after error occured
-func RecommendFromError(command string, ui contracts.UI) {
+func RecommendFromError(command string, ui UI) {
 	ui.PrintString("")
 	ui.PrintString("Have you tried 'asd "+command+"'?", color.FgYellow)
 }

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/windler/asd/app/commands/contracts"
-
 	figure "github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
@@ -14,8 +12,6 @@ import (
 
 //ConsoleUI prints output on console
 type ConsoleUI struct{}
-
-var _ contracts.UI = &ConsoleUI{}
 
 func (ui ConsoleUI) PrintHeader(s string) {
 	figure.NewFigure(s, "", true).Print()

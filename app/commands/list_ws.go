@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/windler/asd/app/commands/contracts"
-
 	"github.com/fatih/color"
 
 	"github.com/urfave/cli"
@@ -17,16 +15,16 @@ import (
 
 //ListWsFactory creates commands to list workspace information
 type ListWsFactory struct {
-	InfoRetriever contracts.WsInfoRetriever
-	UserInterface contracts.UI
+	InfoRetriever WsInfoRetriever
+	UserInterface UI
+}
+
+type WsInfoRetriever interface {
+	Status(ws string) string
+	CurrentBranch(ws string) string
 }
 
 type tableData [][]string
-
-//ensure interface
-var (
-	_ BaseCommandFactory = &ListWsFactory{}
-)
 
 //CreateCommand creates a ListWsCommand
 func (factory *ListWsFactory) CreateCommand() BaseCommand {
@@ -42,7 +40,7 @@ func (factory *ListWsFactory) CreateCommand() BaseCommand {
 	}
 }
 
-func (factory *ListWsFactory) UI() contracts.UI {
+func (factory *ListWsFactory) UI() UI {
 	return factory.UserInterface
 }
 

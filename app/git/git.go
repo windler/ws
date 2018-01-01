@@ -3,8 +3,6 @@ package git
 import (
 	"fmt"
 	"os/exec"
-
-	"github.com/windler/asd/app/commands/contracts"
 )
 
 //Git is for all git operations
@@ -15,8 +13,6 @@ const (
 	StatusCodeWarning int = 1
 	StatusCodeError   int = 2
 )
-
-var _ contracts.WsInfoRetriever = &Git{}
 
 //New creates a Git Workspace Info Retriever
 func New() Git {

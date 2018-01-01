@@ -5,7 +5,6 @@ import (
 
 	"github.com/urfave/cli"
 	"github.com/windler/asd/app/commands"
-	"github.com/windler/asd/app/commands/contracts"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,7 +32,7 @@ func (m *BaseCommandFactoryMock) CreateCommand() commands.BaseCommand {
 	return args.Get(0).(commands.BaseCommand)
 }
 
-func (m *BaseCommandFactoryMock) UI() contracts.UI {
+func (m *BaseCommandFactoryMock) UI() UI {
 	m.Called()
 
 	return nil

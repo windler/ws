@@ -3,8 +3,6 @@ package commands
 import (
 	"bufio"
 
-	"github.com/windler/asd/app/commands/contracts"
-
 	"os"
 
 	"github.com/fatih/color"
@@ -15,7 +13,7 @@ import (
 
 //SetupAppFactory creates commands to list workspace information
 type SetupAppFactory struct {
-	UserInterface contracts.UI
+	UserInterface UI
 }
 
 //ensure interface
@@ -55,7 +53,7 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 	}
 }
 
-func (factory *SetupAppFactory) UI() contracts.UI {
+func (factory *SetupAppFactory) UI() UI {
 	return factory.UserInterface
 }
 

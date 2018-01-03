@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/windler/asd/internal/test"
+	"github.com/windler/ws/internal/test"
 )
 
 func TestPrepareConfig(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/windler/asd/config"
-	"github.com/windler/asd/internal/test"
+	"github.com/windler/ws/app/config"
+	"github.com/windler/ws/internal/test"
 )
 
 func TestSetupCommand(t *testing.T) {
@@ -17,17 +17,12 @@ func TestSetupCommand(t *testing.T) {
 	assert.Equal(t, "setup", f.Command)
 	assert.Equal(t, []string{}, f.Aliases)
 	assert.Equal(t, "Configure everything to unleash the beauty. Alternatively, you can edit your personal config file.", f.Description)
-	assert.Equal(t, 2, len(f.Subcommands))
+	assert.Equal(t, 1, len(f.Subcommands))
 
 	scWs := f.Subcommands[0]
 	assert.Equal(t, "ws", scWs.Command)
 	assert.Equal(t, []string{"workspace_dir"}, scWs.Aliases)
-	assert.Equal(t, "Set the root dir where all (most) of your workspaces are.", scWs.Description)
-
-	scAdd := f.Subcommands[1]
-	assert.Equal(t, "add", scAdd.Command)
-	assert.Equal(t, []string{"add_single_workspace"}, scAdd.Aliases)
-	assert.Equal(t, "Add an additional worskpace wich is not contained in <workspace_dir>.", scAdd.Description)
+	assert.Equal(t, "Set the root dir where all of your workspaces are.", scWs.Description)
 }
 
 func TestSetNewWsDir(t *testing.T) {

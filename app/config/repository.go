@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/urfave/cli"
-	"github.com/windler/asd/app/common"
+	"github.com/windler/ws/app/common"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -17,6 +17,13 @@ import (
 type Config struct {
 	WsDir              string
 	ParallelProcessing int
+	CustomCommands     []CustomCommand
+}
+
+type CustomCommand struct {
+	Name string
+	cmd  string
+	args []string
 }
 
 var (
@@ -78,7 +85,7 @@ func ensureCfgFile(c *cli.Context) {
 		if err != nil {
 			log.Fatal("can not obtain user ", err)
 		}
-		cfgFile = usr.HomeDir + "/.projherocfg"
+		cfgFile = usr.HomeDir + "/.wshero"
 	} else {
 		cfgFile = common.EnsureFileFormat(c.String(ConfigFlag))
 	}

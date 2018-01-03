@@ -1,20 +1,15 @@
-# asd - workspace hero
-`asd` is a command line tool that helps you handling your workspaces. Its purpose is to
+# ws - workspace hero
+`ws` is a command line tool that helps you handling your workspaces. Its purpose is to
 - **list** all of your workspaces
 - get **git information** about your workspaces, like **git status** and **current branch**
 
-This tool is still under work. Its main purpose was to get used to the language `go`.
-
-## Why the name?
-This is a command line tool. You will use it often. You will type it often. So why bother typing some tool name? Typing `asd` is much simpler.
-
 ## Installation
-`go get github.com/windler/asd`
+`go get github.com/windler/ws`
 
 ## Usage
-First, run `asd setup ws` to set your workspace directory. Then, you can run `asd` or `asd ls` or just try `asd -h`:
+First, run `ws setup ws` to set your workspace directory. Then, you can run `ws` or `ws ls` or just try `ws -h`:
 ```bash
-asd ls
+ws ls
                     DIR                   |   GIT STATUS   | BRANCH
 +-----------------------------------------+----------------+--------+
   /home/windler/projects/gittest          | UNMODIFED      | master
@@ -23,13 +18,13 @@ asd ls
 ```
 
 ```bash
-asd -h
+ws -h
 
 NAME:
-   asd - workspace hero
+   ws - workspace hero
 
 USAGE:
-   asd [global options] command [command options] [arguments...]
+   ws [global options] command [command options] [arguments...]
 
 VERSION:
    0.0.1
@@ -53,7 +48,3 @@ GLOBAL OPTIONS:
 COPYRIGHT:
    2017
 ```
-
-## Future work
-- **start** and **stop** dev environment e.g. `docker-compose` or `vagrant` 
-- **run tests** 

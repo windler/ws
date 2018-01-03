@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/urfave/cli"
-	"github.com/windler/asd/config"
+	"github.com/windler/ws/app/config"
 )
 
 //ListWsFactory creates commands to list workspace information

@@ -5,14 +5,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/windler/asd/app/common"
+	"github.com/windler/ws/app/common"
 
 	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/urfave/cli"
-	"github.com/windler/asd/config"
-	"github.com/windler/asd/internal/test"
+	"github.com/windler/ws/app/config"
+	"github.com/windler/ws/internal/test"
 )
 
 func TestLsWsCommand(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/urfave/cli"
-	"github.com/windler/asd/app/commands"
+	"github.com/windler/ws/app/commands"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -14,7 +14,7 @@ func TestDefaultApp(t *testing.T) {
 	app := CreateNewApp("myVersion")
 
 	assert.Equal(t, "myVersion", app.app.Version)
-	assert.Equal(t, "asd", app.app.Name)
+	assert.Equal(t, "ws", app.app.Name)
 	assert.Equal(t, "Dev Workspace Swiss Knife.", app.app.Description)
 	assert.Equal(t, "workspace hero", app.app.Usage)
 	assert.Equal(t, "Nico Windler", app.app.Author)
@@ -32,7 +32,7 @@ func (m *BaseCommandFactoryMock) CreateCommand() commands.BaseCommand {
 	return args.Get(0).(commands.BaseCommand)
 }
 
-func (m *BaseCommandFactoryMock) UI() UI {
+func (m *BaseCommandFactoryMock) UI() commands.UI {
 	m.Called()
 
 	return nil

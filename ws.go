@@ -2,14 +2,14 @@ package main
 
 import (
 	"github.com/urfave/cli"
-	asd "github.com/windler/asd/app"
-	"github.com/windler/asd/app/commands"
-	"github.com/windler/asd/app/git"
-	"github.com/windler/asd/app/ui"
+	ws "github.com/windler/ws/app"
+	"github.com/windler/ws/app/commands"
+	"github.com/windler/ws/app/git"
+	"github.com/windler/ws/app/ui"
 )
 
 func main() {
-	app := asd.CreateNewApp("0.0.1")
+	app := ws.CreateNewApp("0.0.1")
 	ui := ui.ConsoleUI{}
 
 	listWsFactory := &commands.ListWsFactory{

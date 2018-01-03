@@ -7,8 +7,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
-	"github.com/windler/asd/app/common"
-	"github.com/windler/asd/config"
+	"github.com/windler/ws/app/common"
+	"github.com/windler/ws/app/config"
 )
 
 //SetupAppFactory creates commands to list workspace information
@@ -24,20 +24,10 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 
 	setWsDirSubCommand := BaseCommand{
 		Command:     "ws",
-		Description: "Set the root dir where all (most) of your workspaces are.",
+		Description: "Set the root dir where all of your workspaces are.",
 		Aliases:     []string{"workspace_dir"},
 		Action: func(c *cli.Context) error {
 			return factory.setWsDirSubCommandExec(c)
-		},
-		Subcommands: []BaseCommand{},
-	}
-
-	addWsSubCommand := BaseCommand{
-		Command:     "add",
-		Description: "Add an additional worskpace wich is not contained in <workspace_dir>.",
-		Aliases:     []string{"add_single_workspace"},
-		Action: func(c *cli.Context) error {
-			return factory.addWsSubCommandExec(c)
 		},
 		Subcommands: []BaseCommand{},
 	}
@@ -48,7 +38,6 @@ func (factory *SetupAppFactory) CreateCommand() BaseCommand {
 		Aliases:     []string{},
 		Subcommands: []BaseCommand{
 			setWsDirSubCommand,
-			addWsSubCommand,
 		},
 	}
 }

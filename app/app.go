@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
-	"github.com/windler/asd/app/commands"
-	"github.com/windler/asd/config"
+	"github.com/windler/ws/app/commands"
+	"github.com/windler/ws/app/config"
 )
 
 //ProjHeroApp is the main cli app
@@ -27,7 +27,7 @@ func CreateNewApp(version string) *ProjHeroApp {
 func (app ProjHeroApp) configureApp(version string) {
 	cliApp := app.app
 
-	cliApp.Name = "asd"
+	cliApp.Name = "ws"
 	cliApp.Description = "Dev Workspace Swiss Knife."
 	cliApp.Usage = "workspace hero"
 	cliApp.Author = "Nico Windler"

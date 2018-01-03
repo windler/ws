@@ -31,7 +31,7 @@ You can create your own command which can be executed on your workspaces. With c
 
 To define you own commands edit your config file (default `~/.wshero`). The following example shows commands to start/stop an test environment and just print the current workspace:
 
-```(yaml)
+```yaml
 wsdir: /home/windler/projects/
 parallelprocessing: 3
 customcommands:
@@ -63,7 +63,7 @@ customcommands:
 
 Custom command are also visible within the helppage
 
-```(bash)
+```bash
 ws -h
 (...)
 COMMANDS:

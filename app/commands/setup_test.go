@@ -32,7 +32,7 @@ func TestSetNewWsDir(t *testing.T) {
 	}
 
 	c, _ := test.CreateTestContext(config.ConfigFlag)
-	config.Repository(c).WsDir = ""
+	config.Repository().WsDir = ""
 
 	oldStdin := mockStdIn("/testWsDir/")
 	defer func() { os.Stdin = oldStdin }()
@@ -41,7 +41,7 @@ func TestSetNewWsDir(t *testing.T) {
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
-	assert.Equal(t, "/testWsDir/", config.Repository(c).WsDir)
+	assert.Equal(t, "/testWsDir/", config.Repository().WsDir)
 }
 
 func mockStdIn(input string) *os.File {

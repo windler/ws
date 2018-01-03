@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli"
 	ws "github.com/windler/ws/app"
 	"github.com/windler/ws/app/commands"
+	"github.com/windler/ws/app/config"
 	"github.com/windler/ws/app/git"
 	"github.com/windler/ws/app/ui"
 )
@@ -25,6 +26,13 @@ func main() {
 	app.AddCommand(&commands.SetupAppFactory{
 		UserInterface: ui,
 	})
+
+	for _, cmd := range config.Repository().CustomCommands {
+		app.AddCommand(&commands.CustomCommandFactory{
+			UserInterface: ui,
+			Cmd:           cmd,
+		})
+	}
 
 	app.Start()
 }

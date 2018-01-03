@@ -1,6 +1,9 @@
 package common
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
 	"os/user"
 	"strings"
 )
@@ -37,6 +40,26 @@ func ensureDirSuffic(dir string) string {
 
 	if !strings.HasSuffix(result, "/") {
 		result = result + "/"
+	}
+
+	return result
+}
+
+func GetWsDirs(root string, onlyCurrent bool) []string {
+	result := []string{}
+
+	fileInfo, err := ioutil.ReadDir(root)
+	if err != nil {
+		fmt.Println(err.Error())
+		return result
+	}
+
+	wd, _ := os.Getwd()
+	for _, dir := range fileInfo {
+		fullDir := (root + dir.Name())
+		if !onlyCurrent || strings.HasPrefix(wd, fullDir) {
+			result = append(result, fullDir)
+		}
 	}
 
 	return result

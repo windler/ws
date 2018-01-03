@@ -7,7 +7,6 @@ import (
 	"os/user"
 	"sync"
 
-	"github.com/urfave/cli"
 	"github.com/windler/ws/app/common"
 
 	yaml "gopkg.in/yaml.v2"
@@ -21,16 +20,16 @@ type Config struct {
 }
 
 type CustomCommand struct {
-	Name string
-	cmd  string
-	args []string
+	Name        string
+	Description string
+	Cmd         string
+	Args        []string
 }
 
 var (
 	cfg     *Config
 	cfgFile string
 	once    sync.Once
-	dirVals = []string{}
 )
 
 const (
@@ -52,21 +51,21 @@ func SetConfigFile(file string) {
 }
 
 //Repository returns the config for the app
-func Repository(c *cli.Context) *Config {
+func Repository() *Config {
 	once.Do(func() {
 		if cfg == nil {
-			createCfg(c)
+			createCfg()
 		}
 	})
 	return cfg
 }
 
-func createCfg(c *cli.Context) {
+func createCfg() {
 	cfg = &Config{
 		ParallelProcessing: 3,
 	}
 
-	ensureCfgFile(c)
+	ensureCfgFile()
 
 	d, err := ioutil.ReadFile(cfgFile)
 
@@ -77,9 +76,9 @@ func createCfg(c *cli.Context) {
 	yaml.Unmarshal(d, &cfg)
 }
 
-func ensureCfgFile(c *cli.Context) {
+func ensureCfgFile() {
 
-	if c.String(ConfigFlag) == "" {
+	if os.Getenv("WS_CFG") == "" {
 		usr, err := user.Current()
 
 		if err != nil {
@@ -87,7 +86,7 @@ func ensureCfgFile(c *cli.Context) {
 		}
 		cfgFile = usr.HomeDir + "/.wshero"
 	} else {
-		cfgFile = common.EnsureFileFormat(c.String(ConfigFlag))
+		cfgFile = common.EnsureFileFormat(os.Getenv("WS_CFG"))
 	}
 
 	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {

@@ -47,7 +47,7 @@ func (factory *SetupAppFactory) UI() UI {
 }
 
 func (factory *SetupAppFactory) setWsDirSubCommandExec(c *cli.Context) error {
-	repo := config.Repository(c)
+	repo := config.Repository()
 
 	factory.UI().PrintHeader("Workspace")
 

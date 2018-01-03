@@ -19,6 +19,8 @@ func CreateTestContext(configFlag string) (*cli.Context, *os.File) {
 	fs.String(configFlag, file.Name(), "")
 	c := cli.NewContext(nil, &fs, nil)
 
+	os.Setenv("WS_CFG", file.Name())
+
 	return c, file
 }
 

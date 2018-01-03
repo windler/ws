@@ -29,8 +29,8 @@ func TestListWsNoWsDefined(t *testing.T) {
 		UserInterface: ui,
 	}
 
-	c, _ := test.CreateTestContext(config.ConfigFlag)
-	config.Repository(c)
+	test.CreateTestContext(config.ConfigFlag)
+	config.Repository()
 
 	f.CreateCommand().Action(&cli.Context{})
 
@@ -44,10 +44,10 @@ func TestListNoDirs(t *testing.T) {
 		UserInterface: ui,
 	}
 
-	c, _ := test.CreateTestContext(config.ConfigFlag)
+	test.CreateTestContext(config.ConfigFlag)
 
 	tmpWsDir, _ := ioutil.TempDir("", "projherotest")
-	config.Repository(c).WsDir = tmpWsDir
+	config.Repository().WsDir = tmpWsDir
 
 	f.CreateCommand().Action(&cli.Context{})
 
@@ -77,7 +77,7 @@ func TestList(t *testing.T) {
 		InfoRetriever: infoRetriever,
 	}
 
-	c, _ := test.CreateTestContext(config.ConfigFlag)
+	test.CreateTestContext(config.ConfigFlag)
 
 	tmpWsDir, _ := ioutil.TempDir("", "wshero")
 	tmpWsDir = common.EnsureDirFormat(tmpWsDir)
@@ -87,7 +87,7 @@ func TestList(t *testing.T) {
 	os.MkdirAll(ws1, os.ModePerm)
 	os.MkdirAll(ws2, os.ModePerm)
 
-	config.Repository(c).WsDir = tmpWsDir
+	config.Repository().WsDir = tmpWsDir
 
 	infoRetriever.On("Status", ws1).Return("super")
 	infoRetriever.On("Status", ws2).Return("bad")

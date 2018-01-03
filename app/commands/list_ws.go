@@ -2,7 +2,6 @@ package commands
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/urfave/cli"
+	"github.com/windler/ws/app/common"
 	"github.com/windler/ws/app/config"
 )
 
@@ -58,7 +58,7 @@ func (factory *ListWsFactory) listWsExecAll(c *cli.Context) error {
 }
 
 func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error {
-	conf := config.Repository(c)
+	conf := config.Repository()
 
 	wsDir := conf.WsDir
 
@@ -70,16 +70,11 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 		return nil
 	}
 
-	fileInfo, err := ioutil.ReadDir(wsDir)
-	if err != nil {
-		return err
-	}
-	dirs := factory.getDirs(fileInfo, wsDir, onlyCurrent)
+	dirs := common.GetWsDirs(wsDir, onlyCurrent)
 
 	rows := tableData{}
 
 	dataChannel := factory.channelFileInfos(dirs)
-
 	fanOutChannels := []<-chan []string{}
 
 	if conf.ParallelProcessing == 0 {
@@ -112,20 +107,6 @@ func (factory *ListWsFactory) printError(onlyCurrent bool) {
 		factory.UI().PrintString("No workspaces found!", color.FgRed)
 		RecommendFromError(CmdSetup, factory.UI())
 	}
-}
-
-func (factory *ListWsFactory) getDirs(fileInfos []os.FileInfo, root string, onlyCurrent bool) []string {
-	result := []string{}
-
-	wd, _ := os.Getwd()
-	for _, dir := range fileInfos {
-		fullDir := (root + dir.Name())
-		if !onlyCurrent || strings.HasPrefix(wd, fullDir) {
-			result = append(result, fullDir)
-		}
-	}
-
-	return result
 }
 
 func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {

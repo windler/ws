@@ -9,16 +9,16 @@ import (
 )
 
 func TestPrepareConfig(t *testing.T) {
-	c, file := test.CreateTestContext(ConfigFlag)
-	Repository(c)
+	_, file := test.CreateTestContext(ConfigFlag)
+	Repository()
 
 	_, err := os.Stat(file.Name())
 	assert.Nil(t, err)
 }
 
 func TestSaveConfig(t *testing.T) {
-	c, _ := test.CreateTestContext(ConfigFlag)
-	repo := Repository(c)
+	test.CreateTestContext(ConfigFlag)
+	repo := Repository()
 
 	assert.Equal(t, "", repo.WsDir)
 

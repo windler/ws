@@ -25,6 +25,7 @@ type BaseCommand struct {
 	Command     string
 	Action      func(c *cli.Context) error
 	Subcommands []BaseCommand
+	Flags       []cli.Flag
 }
 
 //CreateCliCommand creates the command for the cli-app
@@ -37,6 +38,7 @@ func CreateCliCommand(factory BaseCommandFactory) *cli.Command {
 		Aliases:     bc.Aliases,
 		ArgsUsage:   "[command]",
 		Subcommands: createSubCommands(bc.Subcommands),
+		Flags:       bc.Flags,
 	}
 
 	if bc.Action != nil {
@@ -56,6 +58,7 @@ func createSubCommands(cmds []BaseCommand) []cli.Command {
 			Aliases:     bc.Aliases,
 			ArgsUsage:   "[command]",
 			Subcommands: createSubCommands(bc.Subcommands),
+			Flags:       bc.Flags,
 		}
 
 		if bc.Action != nil {

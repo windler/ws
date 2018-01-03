@@ -34,6 +34,7 @@ To define you own commands edit your config file (default `~/.wshero`). The foll
 ```yaml
 wsdir: /home/windler/projects/
 parallelprocessing: 3
+tableformat: "{{cmd \"pws\" .}}|{{gitStatus .}}|{{gitBranch .}}"
 customcommands:
 - name: pws
   description: "print the current ws name"
@@ -82,3 +83,16 @@ You can use variables in your custom cammands using `go-template` syntax. The fo
 | Variable       | Description                                        |
 |----------------|----------------------------------------------------|
 | WSRoot         | The absolute path of the current workspace         |
+
+## Custom table layout
+You can modify the table from the `ls` command by passing the flag `--table pattern` or permamently by setting `tableformat` in the config file. The columns are separated by the pipe (`|`). You have to use the `go-template` syntax. The template is feeded with the workspace dir. The following functions are available for the output:
+
+| Function            | Description                                                                                 |
+|---------------------|---------------------------------------------------------------------------------------------|
+| wsRoot (dir)        | Prints the directory and adds an arrow if your current working direcotry is withing the dir |
+| gitStatus (dir)     | Prints the git status of the dir                                                            |
+| gitBranch (dir)     | Prints the current git branch of the dir                                                    |
+| cmd (name, dir)     | Runs the custom command in the dir and prints the output                                    |
+
+E.g. to print the current branch and the output of a custom command "pws" the pattern is the following: 
+`{{gitBranch .}}|{{cmd "pws" .}}`

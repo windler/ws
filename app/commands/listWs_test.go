@@ -44,12 +44,12 @@ func TestListNoDirs(t *testing.T) {
 		UserInterface: ui,
 	}
 
-	test.CreateTestContext(config.ConfigFlag)
+	c, _ := test.CreateTestContext(config.ConfigFlag)
 
 	tmpWsDir, _ := ioutil.TempDir("", "projherotest")
 	config.Repository().WsDir = tmpWsDir
 
-	f.CreateCommand().Action(&cli.Context{})
+	f.CreateCommand().Action(c)
 
 	ui.AssertCalled(t, "PrintString", "No workspaces found!", color.FgRed)
 }
@@ -77,7 +77,7 @@ func TestList(t *testing.T) {
 		InfoRetriever: infoRetriever,
 	}
 
-	test.CreateTestContext(config.ConfigFlag)
+	c, _ := test.CreateTestContext(config.ConfigFlag)
 
 	tmpWsDir, _ := ioutil.TempDir("", "wshero")
 	tmpWsDir = common.EnsureDirFormat(tmpWsDir)
@@ -97,9 +97,9 @@ func TestList(t *testing.T) {
 
 	ui.On("PrintTable", mock.Anything, mock.Anything).Return()
 
-	f.CreateCommand().Action(&cli.Context{})
+	f.CreateCommand().Action(c)
 
-	ui.AssertCalled(t, "PrintTable", []string{"dir", "git status", "branch"}, [][]string{
+	ui.AssertCalled(t, "PrintTable", []string{"ws", "git status", "git branch"}, [][]string{
 		[]string{ws1, "super", "master"},
 		[]string{ws2, "bad", "someBranch"},
 	})

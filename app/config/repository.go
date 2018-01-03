@@ -17,6 +17,7 @@ type Config struct {
 	WsDir              string
 	ParallelProcessing int
 	CustomCommands     []CustomCommand
+	TableFormat        string
 }
 
 type CustomCommand struct {

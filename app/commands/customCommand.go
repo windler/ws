@@ -45,27 +45,33 @@ func (factory *CustomCommandFactory) action(c *cli.Context) error {
 	}()
 
 	factory.UI().PrintString(factory.Cmd.Name+":", color.FgGreen)
+	factory.UI().PrintString(ExecCustomCommand(&factory.Cmd, ""))
 
-	args := getArgs(factory.Cmd.Args)
-	data, err := exec.Command(factory.Cmd.Cmd, args...).Output()
+	return nil
+}
+
+func ExecCustomCommand(cmd *config.CustomCommand, forceRoot string) string {
+	args := getArgs(cmd.Args, forceRoot)
+	data, err := exec.Command(cmd.Cmd, args...).Output()
 
 	if err != nil {
 		panic(err)
 	}
 
-	factory.UI().PrintString(string(data))
-
-	return err
+	return string(data)
 }
 
 type customCommandEnv struct {
 	WSRoot string
 }
 
-func getArgs(original []string) []string {
+func getArgs(original []string, forceRoot string) []string {
 	result := []string{}
-	env := &customCommandEnv{
-		WSRoot: common.GetWsDirs(config.Repository().WsDir, true)[0],
+	env := &customCommandEnv{}
+	if forceRoot != "" {
+		env.WSRoot = forceRoot
+	} else {
+		env.WSRoot = common.GetWsDirs(config.Repository().WsDir, true)[0]
 	}
 
 	for _, arg := range original {

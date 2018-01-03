@@ -1,7 +1,10 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	"html/template"
 	"os"
 	"sort"
 	"strings"
@@ -35,6 +38,12 @@ func (factory *ListWsFactory) CreateCommand() BaseCommand {
 		Aliases:     []string{},
 		Action: func(c *cli.Context) error {
 			return factory.listWsExecAll(c)
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "table",
+				Usage: "formats the table using the `template`",
+			},
 		},
 		Subcommands: []BaseCommand{},
 	}
@@ -72,19 +81,20 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 
 	dirs := common.GetWsDirs(wsDir, onlyCurrent)
 
-	rows := tableData{}
-
 	dataChannel := factory.channelFileInfos(dirs)
 	fanOutChannels := []<-chan []string{}
+
+	tableFormat := getTableFormat(c)
 
 	if conf.ParallelProcessing == 0 {
 		return errors.New("ParallelProcessing has to be > 0")
 	}
 
 	for i := 0; i < conf.ParallelProcessing; i++ {
-		fanOutChannels = append(fanOutChannels, factory.collectWsData(dataChannel, onlyCurrent))
+		fanOutChannels = append(fanOutChannels, factory.collectWsData(dataChannel, onlyCurrent, tableFormat))
 	}
 
+	rows := tableData{}
 	fanInChannel := factory.fanIn(fanOutChannels)
 	for i := 0; i < len(dirs); i++ {
 		rows = append(rows, <-fanInChannel)
@@ -92,12 +102,37 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 
 	if len(rows) > 0 {
 		sort.Sort(rows)
-		factory.UI().PrintTable([]string{"dir", "git status", "branch"}, rows)
+
+		funcMap := template.FuncMap{
+			"wsRoot":    func(dir string) string { return "ws" },
+			"gitStatus": func(dir string) string { return "git status" },
+			"gitBranch": func(dir string) string { return "git branch" },
+			"cmd":       func(name, dir string) string { return name },
+		}
+
+		buf := new(bytes.Buffer)
+		t := template.Must(template.New("header").Funcs(funcMap).Parse(tableFormat))
+		t.Execute(buf, "")
+
+		factory.UI().PrintTable(strings.Split(buf.String(), "|"), rows)
 	} else {
 		factory.printError(onlyCurrent)
 	}
 
 	return nil
+}
+
+func getTableFormat(c *cli.Context) string {
+	conf := config.Repository()
+
+	tableFormat := "{{wsRoot .}}|{{gitStatus .}}|{{gitBranch .}}"
+	if c.String("table") != "" {
+		tableFormat = c.String("table")
+	} else if conf.TableFormat != "" {
+		tableFormat = conf.TableFormat
+	}
+
+	return tableFormat
 }
 
 func (factory *ListWsFactory) printError(onlyCurrent bool) {
@@ -120,24 +155,49 @@ func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
 	return out
 }
 
-func (factory *ListWsFactory) collectWsData(in <-chan string, onlyCurrent bool) <-chan []string {
+func (factory *ListWsFactory) collectWsData(in <-chan string, onlyCurrent bool, pattern string) <-chan []string {
 	out := make(chan []string)
 	go func() {
-		wd, _ := os.Getwd()
+		funcMap := template.FuncMap{
+			"wsRoot": func(dir string) string {
+				res := dir
+				wd, _ := os.Getwd()
+				if !onlyCurrent && strings.HasPrefix(wd, dir) {
+					res = res + " <--"
+				}
+				return res
+			},
+			"gitStatus": func(dir string) string {
+				return factory.InfoRetriever.Status(dir)
+			},
+			"gitBranch": func(dir string) string {
+				return factory.InfoRetriever.CurrentBranch(dir)
+			},
+			"cmd": func(name, dir string) string {
+				fmt.Println(dir, name)
+				for _, cmd := range config.Repository().CustomCommands {
+					if cmd.Name == name {
+						return strings.TrimSpace(ExecCustomCommand(&cmd, dir))
+					}
+				}
+				return "-- NO OUTPUT --"
+			},
+		}
 
 		for dir := range in {
-			status := factory.InfoRetriever.Status(dir)
-			branch := factory.InfoRetriever.CurrentBranch(dir)
+			buf := new(bytes.Buffer)
+			t := template.Must(template.New("table").Funcs(funcMap).Parse(pattern))
+			t.Execute(buf, dir)
 
-			if !onlyCurrent && strings.HasPrefix(wd, dir) {
-				dir = dir + " <--"
-			}
-
-			out <- []string{dir, status, branch}
+			out <- strings.Split(buf.String(), "|")
 		}
 		close(out)
 	}()
 	return out
+}
+
+type tableTemplateData struct {
+	Dir string
 }
 
 func (factory *ListWsFactory) fanIn(input []<-chan []string) <-chan []string {

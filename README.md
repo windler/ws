@@ -7,7 +7,11 @@
 `go get github.com/windler/ws`
 
 ## Usage
-First, run `ws setup ws` to set your workspace directory. Then, you can run `ws` or `ws ls` to get workspace information.
+First, run 
+```bash
+ws setup ws
+``` 
+to set your workspace directory. Then, you can run `ws` or `ws ls` to get workspace information.
 ```bash
 ws ls
                     DIR                   |   GIT STATUS   | BRANCH
@@ -68,7 +72,10 @@ customcommands:
   - "down"
 ```
 
-When you run a custom command it will be executed in the current workspace. If you want to run it in a specific workspace, pass the option `-w pattern`. The first workspace taht matches your pattern will be used. E.g. if you want to start your editor for the workspace `/home/windler/projects/gittest` using the `code` custom command type the following: `ws code -w gittest`. 
+When you run a custom command it will be executed in the current workspace. If you want to run it in a specific workspace, pass the option `-w pattern`. The first workspace taht matches your pattern will be used. E.g. if you want to start your editor for the workspace `/home/windler/projects/gittest` using the `code` custom command type the following: 
+```bash
+ws code -w gittest
+``` 
 
 Custom command are also visible within the help-page
 
@@ -103,4 +110,6 @@ You can modify the table from the `ls` command by passing the flag `--table patt
 | cmd (name, dir)     | Runs the custom command in the dir and prints the output                                    |
 
 E.g. to print the current branch and the output of a custom command "pws" the pattern is the following: 
-`{{gitBranch .}}|{{cmd "pws" .}}`
+```bash
+{{gitBranch .}}|{{cmd "pws" .}}
+```

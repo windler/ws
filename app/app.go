@@ -4,8 +4,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
-	"github.com/windler/ws/app/commands"
-	"github.com/windler/ws/app/config"
+	"github.com/windler/ws/app/appcontracts"
 )
 
 //ProjHeroApp is the main cli app
@@ -14,17 +13,17 @@ type ProjHeroApp struct {
 }
 
 //CreateNewApp create a new app with the given version
-func CreateNewApp(version string) *ProjHeroApp {
+func CreateNewApp(version string, cfg appcontracts.Config) *ProjHeroApp {
 	a := &ProjHeroApp{
 		app: cli.NewApp(),
 	}
 
-	a.configureApp(version)
+	a.configureApp(version, cfg)
 
 	return a
 }
 
-func (app ProjHeroApp) configureApp(version string) {
+func (app ProjHeroApp) configureApp(version string, cfg appcontracts.Config) {
 	cliApp := app.app
 
 	cliApp.Name = "ws"
@@ -36,7 +35,7 @@ func (app ProjHeroApp) configureApp(version string) {
 
 	cliApp.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  config.ConfigFlag + ", c",
+			Name:  "config, c",
 			Usage: "Load configuration from `FILE`",
 		},
 	}
@@ -49,8 +48,8 @@ func (app *ProjHeroApp) SetAction(fn func(c *cli.Context) error) {
 }
 
 //AddCommand adds a new cli command
-func (app *ProjHeroApp) AddCommand(factory commands.BaseCommandFactory) {
-	command := commands.CreateCliCommand(factory)
+func (app *ProjHeroApp) AddCommand(cmd appcontracts.WSCommand, cfg appcontracts.Config) {
+	command := CreateCliCommand(cmd, cfg)
 
 	cliApp := app.app
 	cliApp.Commands = append(cliApp.Commands, *command)

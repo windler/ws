@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/urfave/cli"
 	ws "github.com/windler/ws/app"
 	"github.com/windler/ws/app/commands"
 	"github.com/windler/ws/app/config"
@@ -10,7 +9,8 @@ import (
 )
 
 func main() {
-	app := ws.CreateNewApp("1.1.0")
+	yamlRepo := config.CreateYamlRepository()
+	app := ws.CreateNewApp("1.1.0", yamlRepo)
 	ui := ui.ConsoleUI{}
 
 	listWsFactory := &commands.ListWsFactory{
@@ -18,20 +18,14 @@ func main() {
 		UserInterface: ui,
 	}
 
-	app.SetAction(func(c *cli.Context) error {
-		return listWsFactory.ListWsExecCurrent(c)
-	})
+	app.AddCommand(listWsFactory.CreateCommand(), yamlRepo)
 
-	app.AddCommand(listWsFactory)
-	app.AddCommand(&commands.SetupAppFactory{
-		UserInterface: ui,
-	})
-
-	for _, cmd := range config.Repository().CustomCommands {
-		app.AddCommand(&commands.CustomCommandFactory{
+	for _, cmd := range yamlRepo.GetCustomCommands() {
+		ccFactory := &commands.CustomCommandFactory{
 			UserInterface: ui,
 			Cmd:           cmd,
-		})
+		}
+		app.AddCommand(ccFactory.CreateCommand(), yamlRepo)
 	}
 
 	app.Start()

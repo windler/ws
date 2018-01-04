@@ -3,15 +3,12 @@ package app
 import (
 	"testing"
 
-	"github.com/urfave/cli"
-	"github.com/windler/ws/app/commands"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/windler/ws/app/appcontracts"
 )
 
 func TestDefaultApp(t *testing.T) {
-	app := CreateNewApp("myVersion")
+	app := CreateNewApp("myVersion", nil)
 
 	assert.Equal(t, "myVersion", app.app.Version)
 	assert.Equal(t, "ws", app.app.Name)
@@ -22,36 +19,47 @@ func TestDefaultApp(t *testing.T) {
 	assert.True(t, app.app.EnableBashCompletion)
 }
 
-type BaseCommandFactoryMock struct {
-	mock.Mock
-}
-
-func (m *BaseCommandFactoryMock) CreateCommand() commands.BaseCommand {
-	args := m.Called()
-
-	return args.Get(0).(commands.BaseCommand)
-}
-
-func (m *BaseCommandFactoryMock) UI() commands.UI {
-	m.Called()
-
-	return nil
-}
-
 func TestAddCommands(t *testing.T) {
-	app := CreateNewApp("myVersion")
+	app := CreateNewApp("myVersion", nil)
 	assert.True(t, len(app.app.Commands) == 0)
 
-	factory := new(BaseCommandFactoryMock)
-	factory.On("CreateCommand").Return(commands.BaseCommand{
+	app.AddCommand(BaseCommand{
 		Command: "testcommand",
-		Action: func(c *cli.Context) error {
-			return nil
-		},
-	})
-
-	app.AddCommand(factory)
+	}, nil)
 
 	assert.True(t, len(app.app.Commands) == 1)
 	assert.Equal(t, "testcommand", app.app.Commands[0].Name)
+}
+
+type BaseCommand struct {
+	Description string
+	Aliases     []string
+	Command     string
+	Action      func(c appcontracts.WSCommandContext)
+	Subcommands []appcontracts.WSCommand
+	Flags       []appcontracts.WSCommandFlag
+}
+
+func (b BaseCommand) GetDescription() string {
+	return b.Description
+}
+
+func (b BaseCommand) GetAliases() []string {
+	return b.Aliases
+}
+
+func (b BaseCommand) GetCommand() string {
+	return b.Command
+}
+
+func (b BaseCommand) GetAction() func(c appcontracts.WSCommandContext) {
+	return b.Action
+}
+
+func (b BaseCommand) GetSubcommands() []appcontracts.WSCommand {
+	return b.Subcommands
+}
+
+func (b BaseCommand) GetStringFlags() []appcontracts.WSCommandFlag {
+	return b.Flags
 }

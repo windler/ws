@@ -8,11 +8,11 @@
 `go get github.com/windler/ws`
 
 ## Usage
-First, run 
-```bash
-ws setup ws
-``` 
-to set your workspace directory. Then, you can run `ws` or `ws ls` to get workspace information.
+First, you have to set your workspace directory in your config file. It is located at `~/.wshero`. Add a line similar to the following:
+```yaml
+wsdir: /home/windler/projects/
+```
+ Then, you can run `ws -h` to show the help page or `ws ls` to get workspace information.
 ```bash
 ws ls
                     DIR                   |   GIT STATUS   | BRANCH
@@ -21,8 +21,6 @@ ws ls
   /home/windler/projects/go               | Not a git repo | /
 
 ```
-
-Type `ws -h` to get the helppage.
 
 ## Custom config path
 The config file default to `~ /.wshero`. If you want to change the default file location you can set the `env WS_CFG`.
@@ -85,7 +83,6 @@ ws -h
 (...)
 COMMANDS:
      ls            List all workspaces with fancy information.
-     setup         Configure everything to unleash the beauty. Alternatively, you can edit your personal config file.
      pws           print the current ws name
      testenv_up    starts a dev environment in background
      testenv_down  stops the dev environment

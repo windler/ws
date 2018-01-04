@@ -5,36 +5,39 @@ import (
 	"log"
 	"os"
 	"os/user"
-	"sync"
 
+	"github.com/windler/ws/app/appcontracts"
 	"github.com/windler/ws/app/common"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 //Config represents all app configurations
-type Config struct {
+type config struct {
 	WsDir              string
 	ParallelProcessing int
-	CustomCommands     []CustomCommand
+	CustomCommands     []appcontracts.CustomCommand
 	TableFormat        string
 }
 
-type CustomCommand struct {
-	Name        string
-	Description string
-	Cmd         string
-	Args        []string
+func (c config) GetWsDir() string {
+	return c.WsDir
+}
+
+func (c config) GetParallelProcessing() int {
+	return c.ParallelProcessing
+}
+
+func (c config) GetCustomCommands() []appcontracts.CustomCommand {
+	return c.CustomCommands
+}
+
+func (c config) GetTableFormat() string {
+	return c.TableFormat
 }
 
 var (
-	cfg     *Config
 	cfgFile string
-	once    sync.Once
-)
-
-const (
-	ConfigFlag string = "config"
 )
 
 func contains(s []string, e string) bool {
@@ -43,6 +46,7 @@ func contains(s []string, e string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -52,21 +56,12 @@ func SetConfigFile(file string) {
 }
 
 //Repository returns the config for the app
-func Repository() *Config {
-	once.Do(func() {
-		if cfg == nil {
-			createCfg()
-		}
-	})
-	return cfg
-}
-
-func createCfg() {
-	cfg = &Config{
+func CreateYamlRepository() appcontracts.Config {
+	cfg := &config{
 		ParallelProcessing: 3,
 	}
 
-	ensureCfgFile()
+	cfg.ensureCfgFile()
 
 	d, err := ioutil.ReadFile(cfgFile)
 
@@ -75,9 +70,11 @@ func createCfg() {
 	}
 
 	yaml.Unmarshal(d, &cfg)
+
+	return cfg
 }
 
-func ensureCfgFile() {
+func (c config) ensureCfgFile() {
 
 	if os.Getenv("WS_CFG") == "" {
 		usr, err := user.Current()
@@ -96,25 +93,9 @@ func ensureCfgFile() {
 			log.Fatal("Cannot create file ", err)
 		}
 		defer f.Close()
-
-		setupDefaultValues()
-		cfg.Save()
 	}
 }
 
-func setupDefaultValues() {
-	cfg.ParallelProcessing = 3
-}
-
-//Save persists the current configuration
-func (c Config) Save() {
-	data, err := yaml.Marshal(cfg)
-	if err != nil {
-		log.Fatal("could not marshall configuration ", err)
-	}
-
-	err = ioutil.WriteFile(cfgFile, data, 0644)
-	if err != nil {
-		log.Fatal("could not write configuration ", err)
-	}
+func (c config) setupDefaultValues() {
+	c.ParallelProcessing = 3
 }

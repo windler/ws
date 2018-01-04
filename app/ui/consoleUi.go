@@ -18,8 +18,27 @@ func (ui ConsoleUI) PrintHeader(s string) {
 	fmt.Println("")
 }
 
-func (ui ConsoleUI) PrintString(s string, colorOrNil ...color.Attribute) {
-	color.New(colorOrNil...).Println(s)
+func (ui ConsoleUI) PrintString(s string, colorOrNil ...string) {
+	var attr color.Attribute
+
+	if len(colorOrNil) == 1 {
+
+		switch colorOrNil[0] {
+		case "white":
+			attr = color.FgWhite
+
+		case "green":
+			attr = color.FgGreen
+
+		case "yellow":
+			attr = color.FgYellow
+
+		case "red":
+			attr = color.FgRed
+		}
+	}
+
+	color.New(attr).Println(s)
 }
 
 func (ui ConsoleUI) PrintTable(header []string, rows [][]string) {

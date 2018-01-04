@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/windler/ws/app/config"
+	"github.com/windler/ws/app/appcontracts"
 )
 
 type WsInfoRetriever interface {
@@ -23,7 +23,7 @@ func GetHeaderFunctionMap() template.FuncMap {
 	}
 }
 
-func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool) template.FuncMap {
+func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool, c *appcontracts.WSCommandContext) template.FuncMap {
 	return template.FuncMap{
 		"wsRoot": func(dir string) string {
 			res := dir
@@ -41,9 +41,9 @@ func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool) templ
 		},
 		"cmd": func(name, dir string) string {
 			fmt.Println(dir, name)
-			for _, cmd := range config.Repository().CustomCommands {
+			for _, cmd := range (*c).GetConfig().GetCustomCommands() {
 				if cmd.Name == name {
-					return strings.TrimSpace(ExecCustomCommand(&cmd, dir))
+					return strings.TrimSpace(ExecCustomCommand(&cmd, dir, c))
 				}
 			}
 			return "-- NO OUTPUT --"

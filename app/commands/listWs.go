@@ -2,16 +2,12 @@ package commands
 
 import (
 	"bytes"
-	"errors"
 	"html/template"
 	"sort"
 	"strings"
 
-	"github.com/fatih/color"
-
-	"github.com/urfave/cli"
+	"github.com/windler/ws/app/appcontracts"
 	"github.com/windler/ws/app/commands/internal/commandCommons"
-	"github.com/windler/ws/app/config"
 )
 
 //ListWsFactory creates commands to list workspace information
@@ -26,19 +22,18 @@ type tableData [][]string
 func (factory *ListWsFactory) CreateCommand() BaseCommand {
 
 	return BaseCommand{
-		Command:     CmdListWs,
+		Command:     "ls",
 		Description: "List all workspaces with fancy information.",
 		Aliases:     []string{},
-		Action: func(c *cli.Context) error {
-			return factory.listWsExecAll(c)
+		Action: func(c appcontracts.WSCommandContext) {
+			factory.listWsExec(&c)
 		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "table",
-				Usage: "formats the table using the `template`",
+		Flags: []StringFlag{
+			StringFlag{
+				"table",
+				"formats the table using the `template`",
 			},
 		},
-		Subcommands: []BaseCommand{},
 	}
 }
 
@@ -50,46 +45,33 @@ func (c tableData) Len() int           { return len(c) }
 func (c tableData) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 func (c tableData) Less(i, j int) bool { return strings.Compare(c[i][0], c[j][0]) == -1 }
 
-//ListWsExecCurrent prints infos about the current ws-directory
-func (factory *ListWsFactory) ListWsExecCurrent(c *cli.Context) error {
-	return factory.listWsExec(c, true)
-}
+func (factory *ListWsFactory) listWsExec(c *appcontracts.WSCommandContext) {
+	conf := (*c).GetConfig()
 
-func (factory *ListWsFactory) listWsExecAll(c *cli.Context) error {
-	return factory.listWsExec(c, false)
-}
-
-func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error {
-	conf := config.Repository()
-
-	wsDir := conf.WsDir
+	wsDir := conf.GetWsDir()
 
 	if wsDir == "" {
 		factory.UI().PrintHeader("Panic!")
-		factory.UI().PrintString(" >> No workspaces defined to scan <<", color.FgRed)
-		RecommendFromError(CmdSetup, factory.UI())
+		factory.UI().PrintString(" >> No workspaces defined to scan <<", "red")
+		RecommendFromError("setup", factory.UI())
 
-		return nil
+		return
 	}
 
-	dirs := []string{}
-	if onlyCurrent {
-		dirs = append(dirs, commandCommons.GetCurrentWorkspace(wsDir))
-	} else {
-		dirs = commandCommons.GetWsDirs(wsDir)
-	}
+	dirs := commandCommons.GetWsDirs(wsDir)
 
 	dataChannel := factory.channelFileInfos(dirs)
 	fanOutChannels := []<-chan []string{}
 
 	tableFormat := getTableFormat(c)
 
-	if conf.ParallelProcessing == 0 {
-		return errors.New("ParallelProcessing has to be > 0")
+	parallel := 3
+	if conf.GetParallelProcessing() > 0 {
+		parallel = conf.GetParallelProcessing()
 	}
 
-	for i := 0; i < conf.ParallelProcessing; i++ {
-		fanOutChannels = append(fanOutChannels, factory.collectWsData(dataChannel, onlyCurrent, tableFormat))
+	for i := 0; i < parallel; i++ {
+		fanOutChannels = append(fanOutChannels, factory.collectWsData(dataChannel, tableFormat, c))
 	}
 
 	rows := tableData{}
@@ -109,32 +91,26 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 
 		factory.UI().PrintTable(strings.Split(buf.String(), "|"), rows)
 	} else {
-		factory.printError(onlyCurrent)
+		factory.printError()
 	}
-
-	return nil
 }
 
-func getTableFormat(c *cli.Context) string {
-	conf := config.Repository()
+func getTableFormat(c *appcontracts.WSCommandContext) string {
+	conf := (*c).GetConfig()
 
 	tableFormat := "{{wsRoot .}}|{{gitStatus .}}|{{gitBranch .}}"
-	if c.String("table") != "" {
-		tableFormat = c.String("table")
-	} else if conf.TableFormat != "" {
-		tableFormat = conf.TableFormat
+	if (*c).GetStringFlag("table") != "" {
+		tableFormat = (*c).GetStringFlag("table")
+	} else if conf.GetTableFormat() != "" {
+		tableFormat = conf.GetTableFormat()
 	}
 
 	return tableFormat
 }
 
-func (factory *ListWsFactory) printError(onlyCurrent bool) {
-	if onlyCurrent {
-		factory.UI().PrintString("Current directory is not within a workspace.", color.FgYellow)
-	} else {
-		factory.UI().PrintString("No workspaces found!", color.FgRed)
-		RecommendFromError(CmdSetup, factory.UI())
-	}
+func (factory *ListWsFactory) printError() {
+	factory.UI().PrintString("No workspaces found!", "red")
+	RecommendFromError("setup", factory.UI())
 }
 
 func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
@@ -148,10 +124,10 @@ func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
 	return out
 }
 
-func (factory *ListWsFactory) collectWsData(in <-chan string, onlyCurrent bool, pattern string) <-chan []string {
+func (factory *ListWsFactory) collectWsData(in <-chan string, pattern string, c *appcontracts.WSCommandContext) <-chan []string {
 	out := make(chan []string)
 	go func() {
-		funcMap := commandCommons.GetRowsFunctionMap(factory.InfoRetriever, !onlyCurrent)
+		funcMap := commandCommons.GetRowsFunctionMap(factory.InfoRetriever, true, c)
 
 		for dir := range in {
 			buf := new(bytes.Buffer)

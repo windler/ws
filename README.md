@@ -2,6 +2,7 @@
 `ws` is a command line tool that helps you handling your workspaces. Its purpose is to
 - **list** all of your workspaces
 - get **git information** about your workspaces, like **git status** and **current branch**
+- run **custom commands** like start an editor or run tests
 
 ## Installation
 `go get github.com/windler/ws`

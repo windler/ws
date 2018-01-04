@@ -3,28 +3,21 @@ package commands
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
-	"os"
 	"sort"
 	"strings"
 
 	"github.com/fatih/color"
 
 	"github.com/urfave/cli"
-	"github.com/windler/ws/app/common"
+	"github.com/windler/ws/app/commands/internal/commandCommons"
 	"github.com/windler/ws/app/config"
 )
 
 //ListWsFactory creates commands to list workspace information
 type ListWsFactory struct {
-	InfoRetriever WsInfoRetriever
+	InfoRetriever commandCommons.WsInfoRetriever
 	UserInterface UI
-}
-
-type WsInfoRetriever interface {
-	Status(ws string) string
-	CurrentBranch(ws string) string
 }
 
 type tableData [][]string
@@ -79,7 +72,12 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 		return nil
 	}
 
-	dirs := common.GetWsDirs(wsDir, onlyCurrent)
+	dirs := []string{}
+	if onlyCurrent {
+		dirs = append(dirs, commandCommons.GetCurrentWorkspace(wsDir))
+	} else {
+		dirs = commandCommons.GetWsDirs(wsDir)
+	}
 
 	dataChannel := factory.channelFileInfos(dirs)
 	fanOutChannels := []<-chan []string{}
@@ -103,12 +101,7 @@ func (factory *ListWsFactory) listWsExec(c *cli.Context, onlyCurrent bool) error
 	if len(rows) > 0 {
 		sort.Sort(rows)
 
-		funcMap := template.FuncMap{
-			"wsRoot":    func(dir string) string { return "ws" },
-			"gitStatus": func(dir string) string { return "git status" },
-			"gitBranch": func(dir string) string { return "git branch" },
-			"cmd":       func(name, dir string) string { return name },
-		}
+		funcMap := commandCommons.GetHeaderFunctionMap()
 
 		buf := new(bytes.Buffer)
 		t := template.Must(template.New("header").Funcs(funcMap).Parse(tableFormat))
@@ -158,31 +151,7 @@ func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
 func (factory *ListWsFactory) collectWsData(in <-chan string, onlyCurrent bool, pattern string) <-chan []string {
 	out := make(chan []string)
 	go func() {
-		funcMap := template.FuncMap{
-			"wsRoot": func(dir string) string {
-				res := dir
-				wd, _ := os.Getwd()
-				if !onlyCurrent && strings.HasPrefix(wd, dir) {
-					res = res + " <--"
-				}
-				return res
-			},
-			"gitStatus": func(dir string) string {
-				return factory.InfoRetriever.Status(dir)
-			},
-			"gitBranch": func(dir string) string {
-				return factory.InfoRetriever.CurrentBranch(dir)
-			},
-			"cmd": func(name, dir string) string {
-				fmt.Println(dir, name)
-				for _, cmd := range config.Repository().CustomCommands {
-					if cmd.Name == name {
-						return strings.TrimSpace(ExecCustomCommand(&cmd, dir))
-					}
-				}
-				return "-- NO OUTPUT --"
-			},
-		}
+		funcMap := commandCommons.GetRowsFunctionMap(factory.InfoRetriever, !onlyCurrent)
 
 		for dir := range in {
 			buf := new(bytes.Buffer)

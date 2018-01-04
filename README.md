@@ -27,6 +27,7 @@ You can create your own command which can be executed on your workspaces. With c
 - start test environment
 - run vsc commands
 - run tests
+- start editor
 - ...
 
 To define you own commands edit your config file (default `~/.wshero`). The following example shows commands to start/stop an test environment and just print the current workspace:
@@ -41,6 +42,11 @@ customcommands:
   cmd: echo
   args:
   - "{{.WSRoot}}"
+ - name: code
+   description: "edit ws in vscode"
+   cmd: "code"
+   args:
+   - "{{.WSRoot}}"
 - name: testenv_up
   description: "starts a dev environment in background"
   cmd: "docker-compose"
@@ -62,7 +68,9 @@ customcommands:
   - "down"
 ```
 
-Custom command are also visible within the helppage
+When you run a custom command it will be executed in the current workspace. If you want to run it in a specific workspace, pass the option `-w pattern`. The first workspace taht matches your pattern will be used. E.g. if you want to start your editor for the workspace `/home/windler/projects/gittest` using the `code` custom command type the following: `ws code -w gittest`. 
+
+Custom command are also visible within the help-page
 
 ```bash
 ws -h

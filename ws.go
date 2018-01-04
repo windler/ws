@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	app := ws.CreateNewApp("1.0.0")
+	app := ws.CreateNewApp("1.0.1")
 	ui := ui.ConsoleUI{}
 
 	listWsFactory := &commands.ListWsFactory{

@@ -1,13 +1,11 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
-	"os/exec"
+
+	"github.com/windler/ws/app/commands/internal/commandCommons"
 
 	"github.com/fatih/color"
-	"github.com/windler/ws/app/common"
 
 	"github.com/urfave/cli"
 	"github.com/windler/ws/app/config"
@@ -30,6 +28,12 @@ func (factory *CustomCommandFactory) CreateCommand() BaseCommand {
 		Action: func(c *cli.Context) error {
 			return factory.action(c)
 		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "w, ws",
+				Usage: "executes the command in `workspace` instead of the current workspace. `workspace` is a regex pattern that must match a single workspace.",
+			},
+		},
 	}
 }
 
@@ -45,49 +49,16 @@ func (factory *CustomCommandFactory) action(c *cli.Context) error {
 	}()
 
 	factory.UI().PrintString(factory.Cmd.Name+":", color.FgGreen)
-	factory.UI().PrintString(ExecCustomCommand(&factory.Cmd, ""))
+
+	var output string
+	if c.String("ws") != "" {
+		ws := commandCommons.GetWorkspaceByPattern(config.Repository().WsDir, c.String("ws"))
+		output = commandCommons.ExecCustomCommand(&factory.Cmd, ws)
+	} else {
+		output = commandCommons.ExecCustomCommandInCurrentWs(&factory.Cmd)
+	}
+
+	factory.UI().PrintString(output)
 
 	return nil
-}
-
-func ExecCustomCommand(cmd *config.CustomCommand, forceRoot string) string {
-	args := getArgs(cmd.Args, forceRoot)
-	data, err := exec.Command(cmd.Cmd, args...).Output()
-
-	if err != nil {
-		panic(err)
-	}
-
-	return string(data)
-}
-
-type customCommandEnv struct {
-	WSRoot string
-}
-
-func getArgs(original []string, forceRoot string) []string {
-	result := []string{}
-	env := &customCommandEnv{}
-	if forceRoot != "" {
-		env.WSRoot = forceRoot
-	} else {
-		env.WSRoot = common.GetWsDirs(config.Repository().WsDir, true)[0]
-	}
-
-	for _, arg := range original {
-		t := template.New("args")
-
-		_, err := t.Parse(arg)
-
-		if err != nil {
-			panic(err)
-		}
-
-		buf := new(bytes.Buffer)
-		t.Execute(buf, env)
-
-		result = append(result, buf.String())
-	}
-
-	return result
 }

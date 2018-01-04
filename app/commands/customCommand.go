@@ -28,12 +28,6 @@ func (factory *CustomCommandFactory) CreateCommand() BaseCommand {
 		Action: func(c *cli.Context) error {
 			return factory.action(c)
 		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "w, ws",
-				Usage: "executes the command in `workspace` instead of the current workspace. `workspace` is a regex pattern that must match a single workspace.",
-			},
-		},
 	}
 }
 
@@ -51,8 +45,8 @@ func (factory *CustomCommandFactory) action(c *cli.Context) error {
 	factory.UI().PrintString(factory.Cmd.Name+":", color.FgGreen)
 
 	var output string
-	if c.String("ws") != "" {
-		ws := commandCommons.GetWorkspaceByPattern(config.Repository().WsDir, c.String("ws"))
+	if c.Args().First() != "" {
+		ws := commandCommons.GetWorkspaceByPattern(config.Repository().WsDir, c.Args().First())
 		output = commandCommons.ExecCustomCommand(&factory.Cmd, ws)
 	} else {
 		output = commandCommons.ExecCustomCommandInCurrentWs(&factory.Cmd)

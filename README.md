@@ -73,9 +73,9 @@ customcommands:
   - "down"
 ```
 
-When you run a custom command it will be executed in the current workspace. If you want to run it in a specific workspace, pass the option `-w pattern`. The first workspace taht matches your pattern will be used. E.g. if you want to start your editor for the workspace `/home/windler/projects/gittest` using the `code` custom command type the following: 
+When you run a custom command it will be executed in the current workspace. If you want to run it in a specific workspace pass a pattern as the first argument. The first workspace that matches your pattern will be used. E.g. if you want to start your editor for the workspace `/home/windler/projects/gittest` using the `code` custom command type the following: 
 ```bash
-ws code -w gittest
+ws code gittest
 ``` 
 
 Custom command are also visible within the help-page

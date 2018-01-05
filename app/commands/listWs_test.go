@@ -28,7 +28,8 @@ func TestListWsNoWsDefined(t *testing.T) {
 
 	f.CreateCommand().Action(c)
 
-	ui.AssertCalled(t, "PrintString", " >> No workspaces defined to scan <<", "red")
+	ui.AssertCalled(t, "PrintString", "Panic!", "red")
+	ui.AssertCalled(t, "PrintString", " >> No workspaces defined to scan <<")
 }
 
 func TestListNoDirs(t *testing.T) {
@@ -162,7 +163,6 @@ func (c testCfg) GetTableFormat() string {
 func MockUI() *UIMock {
 	u := new(UIMock)
 
-	u.On("PrintHeader", mock.AnythingOfType("string")).Return()
 	u.On("PrintString", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return()
 	u.On("PrintString", mock.AnythingOfType("string")).Return()
 
@@ -173,12 +173,10 @@ type UIMock struct {
 	mock.Mock
 }
 
-func (u *UIMock) PrintHeader(s string) {
-	u.Called(s)
-}
 func (u *UIMock) PrintTable(header []string, rows [][]string) {
 	u.Called(header, rows)
 }
+
 func (u *UIMock) PrintString(s string, colorOrNil ...string) {
 	if colorOrNil == nil {
 		u.Called(s)

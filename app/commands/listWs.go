@@ -48,8 +48,8 @@ func (factory *ListWsFactory) listWsExec(c *WSCommandContext) {
 	wsDir := conf.GetWsDir()
 
 	if wsDir == "" {
-		factory.UI().PrintHeader("Panic!")
-		factory.UI().PrintString(" >> No workspaces defined to scan <<", "red")
+		factory.UI().PrintString("Panic!", "red")
+		factory.UI().PrintString(" >> No workspaces defined to scan <<")
 		RecommendFromError("setup", factory.UI())
 
 		return

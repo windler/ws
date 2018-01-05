@@ -1,7 +1,6 @@
 package commands
 
 type UI interface {
-	PrintHeader(s string)
 	PrintTable(header []string, rows [][]string)
 	PrintString(s string, colorOrNil ...string)
 }

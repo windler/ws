@@ -1,4 +1,4 @@
-package appcontracts
+package commands
 
 type Config interface {
 	GetWsDir() string
@@ -7,9 +7,9 @@ type Config interface {
 	GetTableFormat() string
 }
 
-type CustomCommand struct {
-	Name        string
-	Description string
-	Cmd         string
-	Args        []string
+type CustomCommand interface {
+	GetName() string
+	GetDescription() string
+	GetCmd() string
+	GetArgs() []string
 }

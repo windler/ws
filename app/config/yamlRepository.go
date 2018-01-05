@@ -5,10 +5,9 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"strings"
 
-	"github.com/windler/ws/app/appcontracts"
-	"github.com/windler/ws/app/common"
-
+	"github.com/windler/ws/app/commands"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -16,8 +15,31 @@ import (
 type config struct {
 	WsDir              string
 	ParallelProcessing int
-	CustomCommands     []appcontracts.CustomCommand
+	CustomCommands     []customCommand
 	TableFormat        string
+}
+
+type customCommand struct {
+	Name        string
+	Description string
+	Cmd         string
+	Args        []string
+}
+
+func (c customCommand) GetName() string {
+	return c.Name
+}
+
+func (c customCommand) GetDescription() string {
+	return c.Description
+}
+
+func (c customCommand) GetCmd() string {
+	return c.Cmd
+}
+
+func (c customCommand) GetArgs() []string {
+	return c.Args
 }
 
 func (c config) GetWsDir() string {
@@ -28,8 +50,12 @@ func (c config) GetParallelProcessing() int {
 	return c.ParallelProcessing
 }
 
-func (c config) GetCustomCommands() []appcontracts.CustomCommand {
-	return c.CustomCommands
+func (c config) GetCustomCommands() []commands.CustomCommand {
+	ret := []commands.CustomCommand{}
+	for _, c := range c.CustomCommands {
+		ret = append(ret, c)
+	}
+	return ret
 }
 
 func (c config) GetTableFormat() string {
@@ -56,7 +82,7 @@ func SetConfigFile(file string) {
 }
 
 //Repository returns the config for the app
-func CreateYamlRepository() appcontracts.Config {
+func CreateYamlRepository() config {
 	cfg := &config{
 		ParallelProcessing: 3,
 	}
@@ -71,7 +97,7 @@ func CreateYamlRepository() appcontracts.Config {
 
 	yaml.Unmarshal(d, &cfg)
 
-	return cfg
+	return *cfg
 }
 
 func (c config) ensureCfgFile() {
@@ -84,7 +110,7 @@ func (c config) ensureCfgFile() {
 		}
 		cfgFile = usr.HomeDir + "/.wshero"
 	} else {
-		cfgFile = common.EnsureFileFormat(os.Getenv("WS_CFG"))
+		cfgFile = ensureFileFormat(os.Getenv("WS_CFG"))
 	}
 
 	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
@@ -94,6 +120,33 @@ func (c config) ensureCfgFile() {
 		}
 		defer f.Close()
 	}
+}
+
+func ensureFileFormat(dir string) string {
+	value := strings.TrimSpace(dir)
+	value = ensureHomeDir(value)
+
+	return value
+}
+
+func ensureHomeDir(dir string) string {
+	result := dir
+	if strings.HasPrefix(result, "~") {
+		usr, _ := user.Current()
+		result = strings.Replace(result, "~", usr.HomeDir, 1)
+	}
+
+	return result
+}
+
+func ensureDirSuffic(dir string) string {
+	result := dir
+
+	if !strings.HasSuffix(result, "/") {
+		result = result + "/"
+	}
+
+	return result
 }
 
 func (c config) setupDefaultValues() {

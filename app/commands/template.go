@@ -1,12 +1,10 @@
-package commandCommons
+package commands
 
 import (
 	"fmt"
 	"html/template"
 	"os"
 	"strings"
-
-	"github.com/windler/ws/app/appcontracts"
 )
 
 type WsInfoRetriever interface {
@@ -23,7 +21,7 @@ func GetHeaderFunctionMap() template.FuncMap {
 	}
 }
 
-func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool, c *appcontracts.WSCommandContext) template.FuncMap {
+func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool, c *WSCommandContext) template.FuncMap {
 	return template.FuncMap{
 		"wsRoot": func(dir string) string {
 			res := dir
@@ -42,7 +40,7 @@ func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool, c *ap
 		"cmd": func(name, dir string) string {
 			fmt.Println(dir, name)
 			for _, cmd := range (*c).GetConfig().GetCustomCommands() {
-				if cmd.Name == name {
+				if cmd.GetName() == name {
 					return strings.TrimSpace(ExecCustomCommand(&cmd, dir, c))
 				}
 			}

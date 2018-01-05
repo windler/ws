@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
-	"github.com/windler/ws/app/appcontracts"
+	"github.com/windler/ws/app/commands"
 )
 
 //ProjHeroApp is the main cli app
@@ -13,7 +13,7 @@ type ProjHeroApp struct {
 }
 
 //CreateNewApp create a new app with the given version
-func CreateNewApp(version string, cfg appcontracts.Config) *ProjHeroApp {
+func CreateNewApp(version string, cfg commands.Config) *ProjHeroApp {
 	a := &ProjHeroApp{
 		app: cli.NewApp(),
 	}
@@ -23,7 +23,7 @@ func CreateNewApp(version string, cfg appcontracts.Config) *ProjHeroApp {
 	return a
 }
 
-func (app ProjHeroApp) configureApp(version string, cfg appcontracts.Config) {
+func (app ProjHeroApp) configureApp(version string, cfg commands.Config) {
 	cliApp := app.app
 
 	cliApp.Name = "ws"
@@ -48,7 +48,7 @@ func (app *ProjHeroApp) SetAction(fn func(c *cli.Context) error) {
 }
 
 //AddCommand adds a new cli command
-func (app *ProjHeroApp) AddCommand(cmd appcontracts.WSCommand, cfg appcontracts.Config) {
+func (app *ProjHeroApp) AddCommand(cmd commands.WSCommand, cfg commands.Config) {
 	command := CreateCliCommand(cmd, cfg)
 
 	cliApp := app.app

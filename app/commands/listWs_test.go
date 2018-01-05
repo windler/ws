@@ -1,12 +1,10 @@
 package commands
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 	"testing"
-
-	"github.com/windler/ws/app/apptest"
-	"github.com/windler/ws/app/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,12 +19,12 @@ func TestLsWsCommand(t *testing.T) {
 }
 
 func TestListWsNoWsDefined(t *testing.T) {
-	ui := apptest.MockUI()
+	ui := MockUI()
 	f := ListWsFactory{
 		UserInterface: ui,
 	}
 
-	c, _ := apptest.CreateTestContextWithWsDir("")
+	c, _ := CreateTestContextWithWsDir("")
 
 	f.CreateCommand().Action(c)
 
@@ -34,14 +32,14 @@ func TestListWsNoWsDefined(t *testing.T) {
 }
 
 func TestListNoDirs(t *testing.T) {
-	ui := apptest.MockUI()
+	ui := MockUI()
 
 	f := ListWsFactory{
 		UserInterface: ui,
 	}
 
 	tmpWsDir, _ := ioutil.TempDir("", "projherotest")
-	c, _ := apptest.CreateTestContextWithWsDir(tmpWsDir)
+	c, _ := CreateTestContextWithWsDir(tmpWsDir)
 
 	f.CreateCommand().Action(c)
 
@@ -63,7 +61,7 @@ func (t testInfoRetriever) CurrentBranch(ws string) string {
 }
 
 func TestList(t *testing.T) {
-	ui := apptest.MockUI()
+	ui := MockUI()
 	infoRetriever := new(testInfoRetriever)
 
 	f := ListWsFactory{
@@ -72,11 +70,11 @@ func TestList(t *testing.T) {
 	}
 
 	tmpWsDir, _ := ioutil.TempDir("", "wshero")
-	tmpWsDir = common.EnsureDirFormat(tmpWsDir)
+	tmpWsDir = tmpWsDir + "/"
 	ws1 := tmpWsDir + "ws1"
 	ws2 := tmpWsDir + "ws2"
 
-	c, _ := apptest.CreateTestContextWithWsDir(tmpWsDir)
+	c, _ := CreateTestContextWithWsDir(tmpWsDir)
 
 	os.MkdirAll(ws1, os.ModePerm)
 	os.MkdirAll(ws2, os.ModePerm)
@@ -95,4 +93,96 @@ func TestList(t *testing.T) {
 		[]string{ws1, "super", "master"},
 		[]string{ws2, "bad", "someBranch"},
 	})
+}
+
+func CreateTestContextWithWsDir(dir string) (TestContext, *os.File) {
+	return createTestContext(dir, true)
+}
+
+func createTestContext(dir string, useDir bool) (TestContext, *os.File) {
+	file, _ := ioutil.TempFile("", "projherotest")
+
+	fs := flag.FlagSet{}
+	fs.String("config", file.Name(), "")
+	os.Setenv("WS_CFG", file.Name())
+
+	wsdir := file.Name()
+	if useDir {
+		wsdir = dir
+	}
+
+	return TestContext{
+		cfg: testCfg{
+			wsdir: wsdir,
+		},
+	}, file
+}
+
+type TestContext struct {
+	cfg testCfg
+}
+
+func (c TestContext) GetStringFlag(flag string) string {
+	return ""
+}
+
+func (c TestContext) GetBoolFlag(flag string) bool {
+	return false
+}
+
+func (c TestContext) GetIntFlag(flag string) int {
+	return 0
+}
+
+func (c TestContext) GetFirstArg() string {
+	return ""
+}
+
+func (c TestContext) GetConfig() Config {
+	return c.cfg
+}
+
+type testCfg struct {
+	wsdir string
+}
+
+func (c testCfg) GetWsDir() string {
+	return c.wsdir
+}
+func (c testCfg) GetParallelProcessing() int {
+	return 0
+}
+func (c testCfg) GetCustomCommands() []CustomCommand {
+	return []CustomCommand{}
+}
+func (c testCfg) GetTableFormat() string {
+	return ""
+}
+
+func MockUI() *UIMock {
+	u := new(UIMock)
+
+	u.On("PrintHeader", mock.AnythingOfType("string")).Return()
+	u.On("PrintString", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return()
+	u.On("PrintString", mock.AnythingOfType("string")).Return()
+
+	return u
+}
+
+type UIMock struct {
+	mock.Mock
+}
+
+func (u *UIMock) PrintHeader(s string) {
+	u.Called(s)
+}
+func (u *UIMock) PrintTable(header []string, rows [][]string) {
+	u.Called(header, rows)
+}
+func (u *UIMock) PrintString(s string, colorOrNil ...string) {
+	if colorOrNil == nil {
+		u.Called(s)
+	} else {
+		u.Called(s, colorOrNil[0])
+	}
 }

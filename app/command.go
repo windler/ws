@@ -2,11 +2,11 @@ package app
 
 import (
 	"github.com/urfave/cli"
-	"github.com/windler/ws/app/appcontracts"
+	"github.com/windler/ws/app/commands"
 )
 
 //CreateCliCommand creates the command for the cli-app
-func CreateCliCommand(bc appcontracts.WSCommand, cfg appcontracts.Config) *cli.Command {
+func CreateCliCommand(bc commands.WSCommand, cfg commands.Config) *cli.Command {
 	cmd := &cli.Command{
 		Name:        bc.GetCommand(),
 		Usage:       bc.GetDescription(),
@@ -28,10 +28,9 @@ func CreateCliCommand(bc appcontracts.WSCommand, cfg appcontracts.Config) *cli.C
 	}
 
 	return cmd
-
 }
 
-func getFlags(cmd appcontracts.WSCommand) []cli.Flag {
+func getFlags(cmd commands.WSCommand) []cli.Flag {
 	flags := []cli.Flag{}
 	for _, f := range cmd.GetStringFlags() {
 		switch f.GetType() {
@@ -56,7 +55,7 @@ func getFlags(cmd appcontracts.WSCommand) []cli.Flag {
 	return flags
 }
 
-func createSubCommands(cmds []appcontracts.WSCommand, cfg appcontracts.Config) []cli.Command {
+func createSubCommands(cmds []commands.WSCommand, cfg commands.Config) []cli.Command {
 	subCommands := []cli.Command{}
 	for _, bc := range cmds {
 		command := cli.Command{
@@ -86,7 +85,7 @@ func createSubCommands(cmds []appcontracts.WSCommand, cfg appcontracts.Config) [
 
 type commandContext struct {
 	context *cli.Context
-	cfg     appcontracts.Config
+	cfg     commands.Config
 }
 
 func (c commandContext) GetStringFlag(flag string) string {
@@ -105,6 +104,6 @@ func (c commandContext) GetFirstArg() string {
 	return c.context.Args().First()
 }
 
-func (c commandContext) GetConfig() appcontracts.Config {
+func (c commandContext) GetConfig() commands.Config {
 	return c.cfg
 }

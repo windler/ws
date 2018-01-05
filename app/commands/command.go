@@ -1,15 +1,33 @@
 package commands
 
-import (
-	"github.com/windler/ws/app/appcontracts"
-)
+type WSCommand interface {
+	GetDescription() string
+	GetAliases() []string
+	GetCommand() string
+	GetAction() func(c WSCommandContext)
+	GetSubcommands() []WSCommand
+	GetStringFlags() []WSCommandFlag
+}
 
-//BaseCommand represents wraps the cli commands
+type WSCommandFlag interface {
+	GetName() string
+	GetUsage() string
+	GetType() string
+}
+
+type WSCommandContext interface {
+	GetStringFlag(flag string) string
+	GetBoolFlag(flag string) bool
+	GetIntFlag(flag string) int
+	GetFirstArg() string
+	GetConfig() Config
+}
+
 type BaseCommand struct {
 	Description string
 	Aliases     []string
 	Command     string
-	Action      func(c appcontracts.WSCommandContext)
+	Action      func(c WSCommandContext)
 	Subcommands []BaseCommand
 	Flags       []StringFlag
 }
@@ -26,20 +44,20 @@ func (b BaseCommand) GetCommand() string {
 	return b.Command
 }
 
-func (b BaseCommand) GetAction() func(c appcontracts.WSCommandContext) {
+func (b BaseCommand) GetAction() func(c WSCommandContext) {
 	return b.Action
 }
 
-func (b BaseCommand) GetSubcommands() []appcontracts.WSCommand {
-	res := []appcontracts.WSCommand{}
+func (b BaseCommand) GetSubcommands() []WSCommand {
+	res := []WSCommand{}
 	for _, sc := range b.Subcommands {
 		res = append(res, sc)
 	}
 	return res
 }
 
-func (b BaseCommand) GetStringFlags() []appcontracts.WSCommandFlag {
-	res := []appcontracts.WSCommandFlag{}
+func (b BaseCommand) GetStringFlags() []WSCommandFlag {
+	res := []WSCommandFlag{}
 	for _, f := range b.Flags {
 		res = append(res, f)
 	}

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/windler/ws/app/appcontracts"
+	"github.com/windler/ws/app/commands"
 )
 
 func TestDefaultApp(t *testing.T) {
@@ -35,9 +35,9 @@ type BaseCommand struct {
 	Description string
 	Aliases     []string
 	Command     string
-	Action      func(c appcontracts.WSCommandContext)
-	Subcommands []appcontracts.WSCommand
-	Flags       []appcontracts.WSCommandFlag
+	Action      func(c commands.WSCommandContext)
+	Subcommands []commands.WSCommand
+	Flags       []commands.WSCommandFlag
 }
 
 func (b BaseCommand) GetDescription() string {
@@ -52,14 +52,14 @@ func (b BaseCommand) GetCommand() string {
 	return b.Command
 }
 
-func (b BaseCommand) GetAction() func(c appcontracts.WSCommandContext) {
+func (b BaseCommand) GetAction() func(c commands.WSCommandContext) {
 	return b.Action
 }
 
-func (b BaseCommand) GetSubcommands() []appcontracts.WSCommand {
+func (b BaseCommand) GetSubcommands() []commands.WSCommand {
 	return b.Subcommands
 }
 
-func (b BaseCommand) GetStringFlags() []appcontracts.WSCommandFlag {
+func (b BaseCommand) GetStringFlags() []commands.WSCommandFlag {
 	return b.Flags
 }

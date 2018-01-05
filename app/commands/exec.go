@@ -1,24 +1,22 @@
-package commandCommons
+package commands
 
 import (
 	"bytes"
 	"html/template"
 	"os/exec"
-
-	"github.com/windler/ws/app/appcontracts"
 )
 
-func ExecCustomCommandInCurrentWs(cmd *appcontracts.CustomCommand, c *appcontracts.WSCommandContext) string {
+func ExecCustomCommandInCurrentWs(cmd *CustomCommand, c *WSCommandContext) string {
 	return execCustomCommand(cmd, "", c)
 }
 
-func ExecCustomCommand(cmd *appcontracts.CustomCommand, ws string, c *appcontracts.WSCommandContext) string {
+func ExecCustomCommand(cmd *CustomCommand, ws string, c *WSCommandContext) string {
 	return execCustomCommand(cmd, ws, c)
 }
 
-func execCustomCommand(cmd *appcontracts.CustomCommand, forceRoot string, c *appcontracts.WSCommandContext) string {
-	args := getArgs(cmd.Args, forceRoot, c)
-	data, err := exec.Command(cmd.Cmd, args...).Output()
+func execCustomCommand(cmd *CustomCommand, forceRoot string, c *WSCommandContext) string {
+	args := getArgs((*cmd).GetArgs(), forceRoot, c)
+	data, err := exec.Command((*cmd).GetCmd(), args...).Output()
 
 	if err != nil {
 		panic(err)
@@ -31,7 +29,7 @@ type customCommandEnv struct {
 	WSRoot string
 }
 
-func getArgs(original []string, forceRoot string, c *appcontracts.WSCommandContext) []string {
+func getArgs(original []string, forceRoot string, c *WSCommandContext) []string {
 	result := []string{}
 	env := &customCommandEnv{}
 	if forceRoot != "" {

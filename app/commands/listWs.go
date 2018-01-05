@@ -5,14 +5,11 @@ import (
 	"html/template"
 	"sort"
 	"strings"
-
-	"github.com/windler/ws/app/appcontracts"
-	"github.com/windler/ws/app/commands/internal/commandCommons"
 )
 
 //ListWsFactory creates commands to list workspace information
 type ListWsFactory struct {
-	InfoRetriever commandCommons.WsInfoRetriever
+	InfoRetriever WsInfoRetriever
 	UserInterface UI
 }
 
@@ -25,7 +22,7 @@ func (factory *ListWsFactory) CreateCommand() BaseCommand {
 		Command:     "ls",
 		Description: "List all workspaces with fancy information.",
 		Aliases:     []string{},
-		Action: func(c appcontracts.WSCommandContext) {
+		Action: func(c WSCommandContext) {
 			factory.listWsExec(&c)
 		},
 		Flags: []StringFlag{
@@ -45,7 +42,7 @@ func (c tableData) Len() int           { return len(c) }
 func (c tableData) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 func (c tableData) Less(i, j int) bool { return strings.Compare(c[i][0], c[j][0]) == -1 }
 
-func (factory *ListWsFactory) listWsExec(c *appcontracts.WSCommandContext) {
+func (factory *ListWsFactory) listWsExec(c *WSCommandContext) {
 	conf := (*c).GetConfig()
 
 	wsDir := conf.GetWsDir()
@@ -58,7 +55,7 @@ func (factory *ListWsFactory) listWsExec(c *appcontracts.WSCommandContext) {
 		return
 	}
 
-	dirs := commandCommons.GetWsDirs(wsDir)
+	dirs := GetWsDirs(wsDir)
 
 	dataChannel := factory.channelFileInfos(dirs)
 	fanOutChannels := []<-chan []string{}
@@ -83,7 +80,7 @@ func (factory *ListWsFactory) listWsExec(c *appcontracts.WSCommandContext) {
 	if len(rows) > 0 {
 		sort.Sort(rows)
 
-		funcMap := commandCommons.GetHeaderFunctionMap()
+		funcMap := GetHeaderFunctionMap()
 
 		buf := new(bytes.Buffer)
 		t := template.Must(template.New("header").Funcs(funcMap).Parse(tableFormat))
@@ -95,7 +92,7 @@ func (factory *ListWsFactory) listWsExec(c *appcontracts.WSCommandContext) {
 	}
 }
 
-func getTableFormat(c *appcontracts.WSCommandContext) string {
+func getTableFormat(c *WSCommandContext) string {
 	conf := (*c).GetConfig()
 
 	tableFormat := "{{wsRoot .}}|{{gitStatus .}}|{{gitBranch .}}"
@@ -124,10 +121,10 @@ func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
 	return out
 }
 
-func (factory *ListWsFactory) collectWsData(in <-chan string, pattern string, c *appcontracts.WSCommandContext) <-chan []string {
+func (factory *ListWsFactory) collectWsData(in <-chan string, pattern string, c *WSCommandContext) <-chan []string {
 	out := make(chan []string)
 	go func() {
-		funcMap := commandCommons.GetRowsFunctionMap(factory.InfoRetriever, true, c)
+		funcMap := GetRowsFunctionMap(factory.InfoRetriever, true, c)
 
 		for dir := range in {
 			buf := new(bytes.Buffer)

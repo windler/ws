@@ -45,11 +45,11 @@ customcommands:
   cmd: echo
   args:
   - "{{.WSRoot}}"
- - name: code
-   description: "edit ws in vscode"
-   cmd: "code"
-   args:
-   - "{{.WSRoot}}"
+- name: code
+  description: "edit ws in vscode"
+  cmd: "code"
+  args:
+  - "{{.WSRoot}}"
 - name: testenv_up
   description: "starts a dev environment in background"
   cmd: "docker-compose"

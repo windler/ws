@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -76,13 +77,14 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-//SetConfigFile sets the config to use (when not set default path will be user)
-func SetConfigFile(file string) {
-	cfgFile = file
-}
-
 //Repository returns the config for the app
 func CreateYamlRepository() config {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Error loading config.", r)
+		}
+	}()
+
 	cfg := &config{
 		ParallelProcessing: 3,
 	}
@@ -92,16 +94,18 @@ func CreateYamlRepository() config {
 	d, err := ioutil.ReadFile(cfgFile)
 
 	if err != nil {
-		log.Fatal("Cannot read file ", err)
+		panic(err)
 	}
 
-	yaml.Unmarshal(d, &cfg)
+	err = yaml.Unmarshal(d, &cfg)
+	if err != nil {
+		panic(err)
+	}
 
 	return *cfg
 }
 
 func (c config) ensureCfgFile() {
-
 	if os.Getenv("WS_CFG") == "" {
 		usr, err := user.Current()
 

@@ -100,7 +100,7 @@ You can use variables in your custom cammands using `go-template` syntax. The fo
 ### cd to workspace
 The `ws` command cannot change the `/proc/<PID>/cwd` of the terminal. Therefore, it is not possible to create a command that changes the terminals directory to a workspace root. As a workaround you can create a `.bashrc` / `.zhsrc` function that wraps the `ws` command and creates its own cd command. Assuming you have defined the above `pws` custom command, such a function could look like this:
 
-```(bash)
+```bash
  w() {
     case "$1" in
         cd)

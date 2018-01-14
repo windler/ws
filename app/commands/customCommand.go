@@ -32,8 +32,6 @@ func (factory *CustomCommandFactory) action(c *WSCommandContext) {
 		}
 	}()
 
-	factory.UI().PrintString(factory.Cmd.GetName()+":", "green")
-
 	var output string
 	if (*c).GetFirstArg() != "" {
 		ws := GetWorkspaceByPattern((*c).GetConfig().GetWsDir(), (*c).GetFirstArg())

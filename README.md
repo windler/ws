@@ -4,6 +4,8 @@
 - get **git information** about your workspaces, like **git status** and **current branch**
 - run **custom commands** like start an editor or run tests
 
+![ws preview](ws.gif)
+
 ## Installation
 `go get github.com/windler/ws`
 

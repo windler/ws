@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/windler/ws.svg?style=svg)](https://circleci.com/gh/windler/ws) [![Go Report Card](https://goreportcard.com/badge/github.com/windler/ws)](https://goreportcard.com/report/github.com/windler/ws) [![codebeat badge](https://codebeat.co/badges/a03086b0-b04d-432f-924e-314ae55fb3b6)](https://codebeat.co/projects/github-com-windler-ws-master)
 # ws - workspace hero
 `ws` is a command line tool that helps you handling your workspaces. Its purpose is to
 - **list** all of your workspaces

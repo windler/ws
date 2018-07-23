@@ -50,7 +50,6 @@ func (factory *ListWsFactory) listWsExec(c *WSCommandContext) {
 	if wsDir == "" {
 		factory.UI().PrintString("Panic!", "red")
 		factory.UI().PrintString(" >> No workspaces defined to scan <<")
-		RecommendFromError("setup", factory.UI())
 
 		return
 	}
@@ -107,7 +106,6 @@ func getTableFormat(c *WSCommandContext) string {
 
 func (factory *ListWsFactory) printError() {
 	factory.UI().PrintString("No workspaces found!", "red")
-	RecommendFromError("setup", factory.UI())
 }
 
 func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {

@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"html/template"
 	"os"
 	"strings"
@@ -38,10 +37,9 @@ func GetRowsFunctionMap(infoRetriever WsInfoRetriever, markCurrentWs bool, c *WS
 			return infoRetriever.CurrentBranch(dir)
 		},
 		"cmd": func(name, dir string) string {
-			fmt.Println(dir, name)
 			for _, cmd := range (*c).GetConfig().GetCustomCommands() {
 				if cmd.GetName() == name {
-					return strings.TrimSpace(ExecCustomCommand(&cmd, dir, c))
+					return strings.TrimSpace(ExecCustomCommandToString(&cmd, dir, c))
 				}
 			}
 			return "-- NO OUTPUT --"

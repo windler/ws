@@ -32,13 +32,10 @@ func (factory *CustomCommandFactory) action(c *WSCommandContext) {
 		}
 	}()
 
-	var output string
 	if (*c).GetFirstArg() != "" {
 		ws := GetWorkspaceByPattern((*c).GetConfig().GetWsDir(), (*c).GetFirstArg())
-		output = ExecCustomCommand(&factory.Cmd, ws, c)
+		ExecCustomCommand(&factory.Cmd, ws, c)
 	} else {
-		output = ExecCustomCommandInCurrentWs(&factory.Cmd, c)
+		ExecCustomCommandInCurrentWs(&factory.Cmd, c)
 	}
-
-	factory.UI().PrintString(output)
 }

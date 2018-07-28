@@ -1,4 +1,4 @@
-package commands
+package commands_test
 
 import (
 	"flag"
@@ -8,10 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/windler/ws/app/commands"
 )
 
 func TestLsWsCommand(t *testing.T) {
-	f := new(ListWsFactory).CreateCommand()
+	f := new(commands.ListWsFactory).CreateCommand()
 
 	assert.Equal(t, "ls", f.Command)
 	assert.Equal(t, []string{}, f.Aliases)
@@ -20,7 +21,7 @@ func TestLsWsCommand(t *testing.T) {
 
 func TestListWsNoWsDefined(t *testing.T) {
 	ui := MockUI()
-	f := ListWsFactory{
+	f := commands.ListWsFactory{
 		UserInterface: ui,
 	}
 
@@ -35,7 +36,7 @@ func TestListWsNoWsDefined(t *testing.T) {
 func TestListNoDirs(t *testing.T) {
 	ui := MockUI()
 
-	f := ListWsFactory{
+	f := commands.ListWsFactory{
 		UserInterface: ui,
 	}
 
@@ -65,7 +66,7 @@ func TestList(t *testing.T) {
 	ui := MockUI()
 	infoRetriever := new(testInfoRetriever)
 
-	f := ListWsFactory{
+	f := commands.ListWsFactory{
 		UserInterface: ui,
 		InfoRetriever: infoRetriever,
 	}
@@ -135,11 +136,11 @@ func (c TestContext) GetIntFlag(flag string) int {
 	return 0
 }
 
-func (c TestContext) GetFirstArg() string {
-	return ""
+func (c TestContext) GetArgs() []string {
+	return []string{}
 }
 
-func (c TestContext) GetConfig() Config {
+func (c TestContext) GetConfig() commands.Config {
 	return c.cfg
 }
 
@@ -153,8 +154,8 @@ func (c testCfg) GetWsDir() string {
 func (c testCfg) GetParallelProcessing() int {
 	return 0
 }
-func (c testCfg) GetCustomCommands() []CustomCommand {
-	return []CustomCommand{}
+func (c testCfg) GetCustomCommands() []commands.CustomCommand {
+	return []commands.CustomCommand{}
 }
 func (c testCfg) GetTableFormat() string {
 	return ""

@@ -19,7 +19,7 @@ type WSCommandContext interface {
 	GetStringFlag(flag string) string
 	GetBoolFlag(flag string) bool
 	GetIntFlag(flag string) int
-	GetFirstArg() string
+	GetArgs() []string
 	GetConfig() Config
 }
 

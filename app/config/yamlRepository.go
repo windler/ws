@@ -24,7 +24,6 @@ type customCommand struct {
 	Name        string
 	Description string
 	Cmd         string
-	Args        []string
 }
 
 func (c customCommand) GetName() string {
@@ -37,10 +36,6 @@ func (c customCommand) GetDescription() string {
 
 func (c customCommand) GetCmd() string {
 	return c.Cmd
-}
-
-func (c customCommand) GetArgs() []string {
-	return c.Args
 }
 
 func (c config) GetWsDir() string {

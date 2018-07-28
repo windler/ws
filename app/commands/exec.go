@@ -23,8 +23,8 @@ func ExecCustomCommandToString(cmd *CustomCommand, ws string, c *WSCommandContex
 }
 
 func execCustomCommand(cmd *CustomCommand, forceRoot string, c *WSCommandContext, outStream io.Writer) {
-	args := getArgs((*cmd).GetArgs(), forceRoot, c)
-	execCmd := exec.Command((*cmd).GetCmd(), args...)
+	commandString := parseCmd((*cmd).GetCmd(), forceRoot, c)
+	execCmd := exec.Command("/bin/sh", "-c", commandString)
 
 	execCmd.Stdin = os.Stdin
 	execCmd.Stdout = outStream
@@ -37,10 +37,10 @@ func execCustomCommand(cmd *CustomCommand, forceRoot string, c *WSCommandContext
 
 type customCommandEnv struct {
 	WSRoot string
+	Args   []string
 }
 
-func getArgs(original []string, forceRoot string, c *WSCommandContext) []string {
-	result := []string{}
+func parseCmd(original string, forceRoot string, c *WSCommandContext) string {
 	env := &customCommandEnv{}
 	if forceRoot != "" {
 		env.WSRoot = forceRoot
@@ -48,20 +48,18 @@ func getArgs(original []string, forceRoot string, c *WSCommandContext) []string 
 		env.WSRoot = GetCurrentWorkspace((*c).GetConfig().GetWsDir())
 	}
 
-	for _, arg := range original {
-		t := template.New("args")
+	env.Args = (*c).GetArgs()
 
-		_, err := t.Parse(arg)
+	t := template.New("args")
 
-		if err != nil {
-			panic(err)
-		}
+	_, err := t.Parse(original)
 
-		buf := new(bytes.Buffer)
-		t.Execute(buf, env)
-
-		result = append(result, buf.String())
+	if err != nil {
+		panic(err)
 	}
 
-	return result
+	buf := new(bytes.Buffer)
+	t.Execute(buf, env)
+
+	return buf.String()
 }

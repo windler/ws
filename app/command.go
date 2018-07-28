@@ -100,8 +100,9 @@ func (c commandContext) GetIntFlag(flag string) int {
 	return c.context.Int(flag)
 }
 
-func (c commandContext) GetFirstArg() string {
-	return c.context.Args().First()
+func (c commandContext) GetArgs() []string {
+	args := c.context.Args()
+	return append([]string{args.First()}, args.Tail()...)
 }
 
 func (c commandContext) GetConfig() commands.Config {

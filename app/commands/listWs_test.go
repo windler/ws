@@ -135,8 +135,8 @@ func (c TestContext) GetIntFlag(flag string) int {
 	return 0
 }
 
-func (c TestContext) GetFirstArg() string {
-	return ""
+func (c TestContext) GetArgs() []string {
+	return []string{}
 }
 
 func (c TestContext) GetConfig() Config {

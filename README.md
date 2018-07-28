@@ -45,33 +45,16 @@ tableformat: "{{cmd \"pws\" .}}|{{gitStatus .}}|{{gitBranch .}}"
 customcommands:
 - name: pws
   description: "print the current ws name"
-  cmd: echo
-  args:
-  - "{{.WSRoot}}"
+  cmd: "echo {{.WSRoot}}"
 - name: code
   description: "edit ws in vscode"
-  cmd: "code"
-  args:
-  - "{{.WSRoot}}"
+  cmd: "code {{.WSRoot}}"
 - name: testenv_up
   description: "starts a dev environment in background"
-  cmd: "docker-compose"
-  args:
-  - "-f"
-  - "{{.WSRoot}}/project/docker-compose.yml"
-  - "-p"
-  - "{{.WSRoot}}"
-  - "up"
-  - "-d"
+  cmd: "docker-compose -f {{.WSRoot}}/project/docker-compose.yml -p {{.WSRoot}} up -d"
 - name: testenv_down
   description: "stops the dev environment"
-  cmd: docker-compose
-  args:
-  - "-f"
-  - "{{.WSRoot}}/project/docker-compose.yml"
-  - "-p"
-  - "{{.WSRoot}}"
-  - "down"
+  cmd: "docker-compose -f {{.WSRoot}}/project/docker-compose.yml -p {{.WSRoot}} down"
 ```
 
 When you run a custom command it will be executed in the current workspace. If you want to run it in a specific workspace pass a pattern as the first argument. The first workspace that matches your pattern will be used. E.g. if you want to start your editor for the workspace `/home/windler/projects/gittest` using the `code` custom command type the following: 
@@ -99,6 +82,7 @@ You can use variables in your custom cammands using `go-template` syntax. The fo
 | Variable       | Description                                        |
 |----------------|----------------------------------------------------|
 | WSRoot         | The absolute path of the current workspace         |
+| Args           | Array of provided args to the custom command. Acces e.g. via `{{index .Args 1}}`         |
 
 ### cd to workspace
 The `ws` command cannot change the `/proc/<PID>/cwd` of the terminal. Therefore, it is not possible to create a command that changes the terminals directory to a workspace root. As a workaround you can create a `.bashrc` / `.zshrc` function that wraps the `ws` command and creates its own cd command. Assuming you have defined the above `pws` custom command, such a function could look like this:

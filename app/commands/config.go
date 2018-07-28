@@ -11,5 +11,4 @@ type CustomCommand interface {
 	GetName() string
 	GetDescription() string
 	GetCmd() string
-	GetArgs() []string
 }

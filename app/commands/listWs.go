@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"html/template"
+	"os"
 	"sort"
 	"strings"
 )
@@ -11,6 +12,13 @@ import (
 type ListWsFactory struct {
 	InfoRetriever WsInfoRetriever
 	UserInterface UI
+	WSRetriever   WorkspaceRetriever
+	Executor      CustomCommandExecutor
+}
+
+type WsInfoRetriever interface {
+	Status(ws string) string
+	CurrentBranch(ws string) string
 }
 
 type tableData [][]string
@@ -54,7 +62,7 @@ func (factory *ListWsFactory) listWsExec(c *WSCommandContext) {
 		return
 	}
 
-	dirs := GetWsDirs(wsDir)
+	dirs := factory.WSRetriever.GetWorkspacesIn(wsDir)
 
 	dataChannel := factory.channelFileInfos(dirs)
 	fanOutChannels := []<-chan []string{}
@@ -79,7 +87,7 @@ func (factory *ListWsFactory) listWsExec(c *WSCommandContext) {
 	if len(rows) > 0 {
 		sort.Sort(rows)
 
-		funcMap := GetHeaderFunctionMap()
+		funcMap := factory.getHeaderFunctionMap()
 
 		buf := new(bytes.Buffer)
 		t := template.Must(template.New("header").Funcs(funcMap).Parse(tableFormat))
@@ -122,7 +130,7 @@ func (factory *ListWsFactory) channelFileInfos(dirs []string) <-chan string {
 func (factory *ListWsFactory) collectWsData(in <-chan string, pattern string, c *WSCommandContext) <-chan []string {
 	out := make(chan []string)
 	go func() {
-		funcMap := GetRowsFunctionMap(factory.InfoRetriever, true, c)
+		funcMap := factory.getRowsFunctionMap(true, c)
 
 		for dir := range in {
 			buf := new(bytes.Buffer)
@@ -151,4 +159,40 @@ func (factory *ListWsFactory) fanIn(input []<-chan []string) <-chan []string {
 	}
 
 	return c
+}
+
+func (factory *ListWsFactory) getHeaderFunctionMap() template.FuncMap {
+	return template.FuncMap{
+		"wsRoot":    func(dir string) string { return "ws" },
+		"gitStatus": func(dir string) string { return "git status" },
+		"gitBranch": func(dir string) string { return "git branch" },
+		"cmd":       func(name, dir string) string { return name },
+	}
+}
+
+func (factory *ListWsFactory) getRowsFunctionMap(markCurrentWs bool, c *WSCommandContext) template.FuncMap {
+	return template.FuncMap{
+		"wsRoot": func(dir string) string {
+			res := dir
+			wd, _ := os.Getwd()
+			if markCurrentWs && strings.HasPrefix(wd, dir) {
+				res = res + " <--"
+			}
+			return res
+		},
+		"gitStatus": func(dir string) string {
+			return factory.InfoRetriever.Status(dir)
+		},
+		"gitBranch": func(dir string) string {
+			return factory.InfoRetriever.CurrentBranch(dir)
+		},
+		"cmd": func(name, dir string) string {
+			for _, cmd := range (*c).GetConfig().GetCustomCommands() {
+				if cmd.GetName() == name {
+					return strings.TrimSpace(factory.Executor.ExecToString(&cmd, dir, c))
+				}
+			}
+			return "-- NO OUTPUT --"
+		},
+	}
 }

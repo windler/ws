@@ -116,3 +116,10 @@ E.g. to print the current branch and the output of a custom command "pws" the pa
 ```bash
 {{gitBranch .}}|{{cmd "pws" .}}
 ```
+
+# TODO
+- [ ] Add more tests
+- [ ] Add option to describe args for custom commands in help output
+- [ ] Add option to run commands in parallel 
+- [ ] Provide binaries (support brew and stuff)
+- [ ] Implement auto update

@@ -8,20 +8,28 @@ import (
 	"strings"
 )
 
-func GetWsDirs(root string) []string {
-	return getWsDirs(root, false)
+type WorkspaceRetriever interface {
+	GetWorkspacesIn(root string) []string
+	GetCurrentWorkspace(root string) string
+	GetWorkspaceByPattern(root, pattern string) string
 }
 
-func GetCurrentWorkspace(root string) string {
-	ws := getWsDirs(root, true)
+type FSWorkspaceRetriever struct{}
+
+func (wr FSWorkspaceRetriever) GetWorkspacesIn(root string) []string {
+	return wr.getWsDirs(root, false)
+}
+
+func (wr FSWorkspaceRetriever) GetCurrentWorkspace(root string) string {
+	ws := wr.getWsDirs(root, true)
 	if len(ws) == 1 {
 		return ws[0]
 	}
 	return ""
 }
 
-func GetWorkspaceByPattern(root, pattern string) string {
-	ws := getWsDirs(root, false)
+func (wr FSWorkspaceRetriever) GetWorkspaceByPattern(root, pattern string) string {
+	ws := wr.getWsDirs(root, false)
 	for _, w := range ws {
 		if match, _ := regexp.MatchString(pattern, w); match {
 			return w
@@ -30,7 +38,7 @@ func GetWorkspaceByPattern(root, pattern string) string {
 	return ""
 }
 
-func getWsDirs(root string, onlyCurrent bool) []string {
+func (wr FSWorkspaceRetriever) getWsDirs(root string, onlyCurrent bool) []string {
 	result := []string{}
 
 	fileInfo, err := ioutil.ReadDir(root)

@@ -8,6 +8,8 @@ import (
 type CustomCommandFactory struct {
 	UserInterface UI
 	Cmd           CustomCommand
+	WSRetriever   WorkspaceRetriever
+	Executor      CustomCommandExecutor
 }
 
 //CreateCommand creates a ListWsCommand
@@ -33,9 +35,9 @@ func (factory *CustomCommandFactory) action(c *WSCommandContext) {
 	}()
 
 	if (*c).GetArgs()[0] != "" {
-		ws := GetWorkspaceByPattern((*c).GetConfig().GetWsDir(), (*c).GetArgs()[0])
-		ExecCustomCommand(&factory.Cmd, ws, c)
+		ws := factory.WSRetriever.GetWorkspaceByPattern((*c).GetConfig().GetWsDir(), (*c).GetArgs()[0])
+		factory.Executor.Exec(&factory.Cmd, ws, c)
 	} else {
-		ExecCustomCommandInCurrentWs(&factory.Cmd, c)
+		factory.Executor.ExecInCurrentWs(&factory.Cmd, c)
 	}
 }

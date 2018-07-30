@@ -8,22 +8,32 @@ import (
 	"os/exec"
 )
 
-func ExecCustomCommandInCurrentWs(cmd *CustomCommand, c *WSCommandContext) {
-	execCustomCommand(cmd, "", c, os.Stdout)
+type CustomCommandExecutor interface {
+	ExecInCurrentWs(cmd *CustomCommand, c *WSCommandContext)
+	Exec(cmd *CustomCommand, ws string, c *WSCommandContext)
+	ExecToString(cmd *CustomCommand, ws string, c *WSCommandContext) string
 }
 
-func ExecCustomCommand(cmd *CustomCommand, ws string, c *WSCommandContext) {
-	execCustomCommand(cmd, ws, c, os.Stdout)
+type SHExecutor struct {
+	WSRetriever WorkspaceRetriever
 }
 
-func ExecCustomCommandToString(cmd *CustomCommand, ws string, c *WSCommandContext) string {
+func (e SHExecutor) ExecInCurrentWs(cmd *CustomCommand, c *WSCommandContext) {
+	e.execCustomCommand(cmd, "", c, os.Stdout)
+}
+
+func (e SHExecutor) Exec(cmd *CustomCommand, ws string, c *WSCommandContext) {
+	e.execCustomCommand(cmd, ws, c, os.Stdout)
+}
+
+func (e SHExecutor) ExecToString(cmd *CustomCommand, ws string, c *WSCommandContext) string {
 	buf := bytes.NewBufferString("")
-	execCustomCommand(cmd, ws, c, buf)
+	e.execCustomCommand(cmd, ws, c, buf)
 	return buf.String()
 }
 
-func execCustomCommand(cmd *CustomCommand, forceRoot string, c *WSCommandContext, outStream io.Writer) {
-	commandString := parseCmd((*cmd).GetCmd(), forceRoot, c)
+func (e SHExecutor) execCustomCommand(cmd *CustomCommand, forceRoot string, c *WSCommandContext, outStream io.Writer) {
+	commandString := e.parseCmd((*cmd).GetCmd(), forceRoot, c)
 	execCmd := exec.Command("/bin/sh", "-c", commandString)
 
 	execCmd.Stdin = os.Stdin
@@ -40,12 +50,13 @@ type customCommandEnv struct {
 	Args   []string
 }
 
-func parseCmd(original string, forceRoot string, c *WSCommandContext) string {
+func (e SHExecutor) parseCmd(original string, forceRoot string, c *WSCommandContext) string {
 	env := &customCommandEnv{}
 	if forceRoot != "" {
 		env.WSRoot = forceRoot
 	} else {
-		env.WSRoot = GetCurrentWorkspace((*c).GetConfig().GetWsDir())
+		workspaceRoot := (*c).GetConfig().GetWsDir()
+		env.WSRoot = e.WSRetriever.GetCurrentWorkspace(workspaceRoot)
 	}
 
 	env.Args = (*c).GetArgs()

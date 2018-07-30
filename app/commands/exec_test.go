@@ -13,7 +13,9 @@ func TestExec(t *testing.T) {
 	customCmd := createCustomCommand("echo printThis")
 	cmdContext := createContext([]string{}, "root")
 
-	res := commands.ExecCustomCommandToString(&customCmd, "/usr/home/workspaces/", &cmdContext)
+	executor := &commands.SHExecutor{}
+
+	res := executor.ExecToString(&customCmd, "/usr/home/workspaces/", &cmdContext)
 
 	assert.Equal(t, "printThis\n", res)
 }
@@ -22,7 +24,9 @@ func TestExecWSRootForce(t *testing.T) {
 	customCmd := createCustomCommand("echo {{.WSRoot}}")
 	cmdContext := createContext([]string{"my"}, "/usr/home/workspaces")
 
-	res := commands.ExecCustomCommandToString(&customCmd, "/usr/home/workspaces/ws1", &cmdContext)
+	executor := &commands.SHExecutor{}
+
+	res := executor.ExecToString(&customCmd, "/usr/home/workspaces/ws1", &cmdContext)
 
 	assert.Equal(t, "/usr/home/workspaces/ws1\n", res)
 }
@@ -31,7 +35,9 @@ func TestExecWSArgs(t *testing.T) {
 	customCmd := createCustomCommand("echo {{index .Args 0}}")
 	cmdContext := createContext([]string{"my"}, "/usr/home/workspaces")
 
-	res := commands.ExecCustomCommandToString(&customCmd, "", &cmdContext)
+	executor := &commands.SHExecutor{}
+
+	res := executor.ExecToString(&customCmd, "/usr/home/workspaces/ws1", &cmdContext)
 
 	assert.Equal(t, "my\n", res)
 }

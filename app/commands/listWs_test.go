@@ -1,14 +1,12 @@
 package commands_test
 
 import (
-	"flag"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/windler/ws/app/commands"
+	"github.com/windler/ws/app/commands/testfiles/mocks"
 )
 
 func TestLsWsCommand(t *testing.T) {
@@ -20,30 +18,32 @@ func TestLsWsCommand(t *testing.T) {
 }
 
 func TestListWsNoWsDefined(t *testing.T) {
-	ui := MockUI()
+	ui := createMockUI()
 	f := commands.ListWsFactory{
 		UserInterface: ui,
 	}
 
-	c, _ := CreateTestContextWithWsDir("")
+	contextMock := createContextMock("", "")
 
-	f.CreateCommand().Action(c)
+	f.CreateCommand().Action(contextMock)
 
 	ui.AssertCalled(t, "PrintString", "Panic!", "red")
 	ui.AssertCalled(t, "PrintString", " >> No workspaces defined to scan <<")
 }
 
 func TestListNoDirs(t *testing.T) {
-	ui := MockUI()
+	ui := createMockUI()
+
+	wsRetrieverMock := &mocks.WorkspaceRetriever{}
+	wsRetrieverMock.On("GetWorkspacesIn", "/usr/home/workspaces/").Return([]string{})
 
 	f := commands.ListWsFactory{
 		UserInterface: ui,
+		WSRetriever:   wsRetrieverMock,
 	}
 
-	tmpWsDir, _ := ioutil.TempDir("", "projherotest")
-	c, _ := CreateTestContextWithWsDir(tmpWsDir)
-
-	f.CreateCommand().Action(c)
+	contextMock := createContextMock("/usr/home/workspaces/", "")
+	f.CreateCommand().Action(contextMock)
 
 	ui.AssertCalled(t, "PrintString", "No workspaces found!", "red")
 }
@@ -63,23 +63,11 @@ func (t testInfoRetriever) CurrentBranch(ws string) string {
 }
 
 func TestList(t *testing.T) {
-	ui := MockUI()
+	ui := createMockUI()
 	infoRetriever := new(testInfoRetriever)
 
-	f := commands.ListWsFactory{
-		UserInterface: ui,
-		InfoRetriever: infoRetriever,
-	}
-
-	tmpWsDir, _ := ioutil.TempDir("", "wshero")
-	tmpWsDir = tmpWsDir + "/"
-	ws1 := tmpWsDir + "ws1"
-	ws2 := tmpWsDir + "ws2"
-
-	c, _ := CreateTestContextWithWsDir(tmpWsDir)
-
-	os.MkdirAll(ws1, os.ModePerm)
-	os.MkdirAll(ws2, os.ModePerm)
+	ws1 := "/usr/home/workspaces/ws1"
+	ws2 := "/usr/home/workspaces/ws2"
 
 	infoRetriever.On("Status", ws1).Return("super")
 	infoRetriever.On("Status", ws2).Return("bad")
@@ -89,7 +77,19 @@ func TestList(t *testing.T) {
 
 	ui.On("PrintTable", mock.Anything, mock.Anything).Return()
 
-	f.CreateCommand().Action(c)
+	wsRetrieverMock := &mocks.WorkspaceRetriever{}
+	wsRetrieverMock.On("GetWorkspacesIn", "/usr/home/workspaces/").Return([]string{
+		ws1, ws2,
+	})
+
+	f := commands.ListWsFactory{
+		UserInterface: ui,
+		InfoRetriever: infoRetriever,
+		WSRetriever:   wsRetrieverMock,
+	}
+
+	contextMock := createContextMock("/usr/home/workspaces/", "")
+	f.CreateCommand().Action(contextMock)
 
 	ui.AssertCalled(t, "PrintTable", []string{"ws", "git status", "git branch"}, [][]string{
 		[]string{ws1, "super", "master"},
@@ -97,72 +97,8 @@ func TestList(t *testing.T) {
 	})
 }
 
-func CreateTestContextWithWsDir(dir string) (TestContext, *os.File) {
-	return createTestContext(dir, true)
-}
-
-func createTestContext(dir string, useDir bool) (TestContext, *os.File) {
-	file, _ := ioutil.TempFile("", "projherotest")
-
-	fs := flag.FlagSet{}
-	fs.String("config", file.Name(), "")
-	os.Setenv("WS_CFG", file.Name())
-
-	wsdir := file.Name()
-	if useDir {
-		wsdir = dir
-	}
-
-	return TestContext{
-		cfg: testCfg{
-			wsdir: wsdir,
-		},
-	}, file
-}
-
-type TestContext struct {
-	cfg testCfg
-}
-
-func (c TestContext) GetStringFlag(flag string) string {
-	return ""
-}
-
-func (c TestContext) GetBoolFlag(flag string) bool {
-	return false
-}
-
-func (c TestContext) GetIntFlag(flag string) int {
-	return 0
-}
-
-func (c TestContext) GetArgs() []string {
-	return []string{}
-}
-
-func (c TestContext) GetConfig() commands.Config {
-	return c.cfg
-}
-
-type testCfg struct {
-	wsdir string
-}
-
-func (c testCfg) GetWsDir() string {
-	return c.wsdir
-}
-func (c testCfg) GetParallelProcessing() int {
-	return 0
-}
-func (c testCfg) GetCustomCommands() []commands.CustomCommand {
-	return []commands.CustomCommand{}
-}
-func (c testCfg) GetTableFormat() string {
-	return ""
-}
-
-func MockUI() *UIMock {
-	u := new(UIMock)
+func createMockUI() *mocks.UI {
+	u := &mocks.UI{}
 
 	u.On("PrintString", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return()
 	u.On("PrintString", mock.AnythingOfType("string")).Return()
@@ -170,18 +106,16 @@ func MockUI() *UIMock {
 	return u
 }
 
-type UIMock struct {
-	mock.Mock
-}
+func createContextMock(workspaceRoot, tableFormat string) *mocks.WSCommandContext {
+	ctxMock := &mocks.WSCommandContext{}
+	configMock := &mocks.Config{}
 
-func (u *UIMock) PrintTable(header []string, rows [][]string) {
-	u.Called(header, rows)
-}
+	configMock.On("GetWsDir").Return(workspaceRoot)
+	configMock.On("GetTableFormat").Return(tableFormat)
+	configMock.On("GetParallelProcessing").Return(1)
 
-func (u *UIMock) PrintString(s string, colorOrNil ...string) {
-	if colorOrNil == nil {
-		u.Called(s)
-	} else {
-		u.Called(s, colorOrNil[0])
-	}
+	ctxMock.On("GetStringFlag", "table").Return("")
+	ctxMock.On("GetConfig").Return(configMock)
+
+	return ctxMock
 }

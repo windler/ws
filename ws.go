@@ -13,9 +13,16 @@ func main() {
 	app := ws.CreateNewApp("1.1.0", yamlRepo)
 	ui := ui.ConsoleUI{}
 
+	workspaceRetriever := &commands.FSWorkspaceRetriever{}
+	executor := &commands.SHExecutor{
+		WSRetriever: workspaceRetriever,
+	}
+
 	listWsFactory := &commands.ListWsFactory{
 		InfoRetriever: git.New(),
 		UserInterface: ui,
+		Executor:      executor,
+		WSRetriever:   workspaceRetriever,
 	}
 
 	app.AddCommand(listWsFactory.CreateCommand(), yamlRepo)
@@ -24,6 +31,8 @@ func main() {
 		ccFactory := &commands.CustomCommandFactory{
 			UserInterface: ui,
 			Cmd:           cmd,
+			Executor:      executor,
+			WSRetriever:   workspaceRetriever,
 		}
 		app.AddCommand(ccFactory.CreateCommand(), yamlRepo)
 	}
